@@ -4,6 +4,38 @@ Todas as mudanças relevantes deste projeto são documentadas neste arquivo para
 
 ---
 
+## [0.3.0] - 2026-11-11
+
+**Agente / Modelo:** Claude Code (Fable 5.2)
+
+### Redesign: "quermesse noturna"
+- Identidade nova registrada em `PRODUCT.md` (para quem é) e `DESIGN.md` (regras do visual).
+- `public/js/art.js` (novo): elenco de 6 personagens, ~35 ícones próprios e as peças do tabuleiro
+  (vila, castelo, pedregulho, gente e carroças). Emojis ficaram só nas reações.
+- `public/js/board.js`: terrenos com textura, mar noturno, portos em placa, vilas/castelos maiores sobre
+  base na cor do dono, gente e carroças andando nas trilhas, fumaça e bandeiras.
+- `public/css/style.css` reescrito: três layouts (largo, compacto, celular deitado), um botão principal por
+  momento, custos nos botões com o que falta apagado, reações num botão só.
+- Animações só com `transform`/`opacity`; removidos fundo animado em tela cheia e filtro no tabuleiro inteiro.
+- Opção "Sair da partida" (dentro de "Como joga"), com confirmação.
+
+### Correções
+- **Partida travava com a aba em segundo plano**: o cliente esperava a animação da catapulta terminar e o
+  navegador pausa animações de abas ocultas. Agora toda espera tem temporizador de segurança (`fx.js`).
+- **Firebase (`net-firebase.js`)**:
+  - O Realtime Database descarta listas/objetos vazios e `null`; o estado chegava incompleto no convidado e a
+    tela quebrava ao desenhar. Estado, tabuleiro e cópia do anfitrião agora trafegam como texto JSON.
+  - Convidado que caía (ou trocava de aplicativo no celular) era ignorado para sempre: o aviso de queda usava
+    um `seq` gigante e as mensagens seguintes pareciam "antigas". Agora o aviso usa o relógio do servidor, o
+    anfitrião trata qualquer mudança de `seq` como mensagem nova e o convidado se reapresenta a cada reconexão.
+  - Anfitrião recarregando a página não reexecuta mais a última ação de cada convidado.
+  - A tela do anfitrião recebia referências vivas do estado do motor; agora recebe cópia.
+  - Convidados são avisados quando o anfitrião cai.
+  - Sala sem chave usa o marcador `-` em vez de texto vazio (as regras publicadas continuam valendo).
+- Em `localhost` o cliente usa o servidor Node; `?fb=1` força o Firebase.
+
+---
+
 ## [0.2.0] - 2026-11-10
 
 **Agente / Modelo:** Antigravity (Google DeepMind — Gemini High)

@@ -33,6 +33,15 @@ node server/index.js --key=minhasenha
 2. Em *Configurações do Projeto* → *Seus aplicativos* (Web), copie os campos (`apiKey`, `authDomain`, `databaseURL`, `projectId`) para [`public/js/firebase-config.js`](public/js/firebase-config.js).
 3. Qualquer *push* na branch `main` publica automaticamente a pasta `public/` no **GitHub Pages** via [`.github/workflows/pages.yml`](.github/workflows/pages.yml).
 
+### Testar o Firebase no seu computador
+
+Em `localhost` o jogo usa o servidor Node (WebSocket). Para forçar o Firebase, abra com `?fb=1`
+(por exemplo `http://localhost:3000/?fb=1`). Publicado no GitHub Pages ele usa o Firebase sozinho.
+
+Como funciona: quem cria a sala é o **anfitrião** e o navegador dele roda as regras e os bots. Se ele
+fechar a aba, a partida pausa até ele voltar (o estado fica salvo); se ele sair pela opção "Sair da
+partida", a sala é encerrada.
+
 ## Testes
 
 ```bash
@@ -50,4 +59,5 @@ Para abrir vários jogadores no mesmo navegador, use abas com `?p=1`, `?p=2`…
 - `server/game.js` — regras, ações e visão por jogador (esconde a mão alheia)
 - `server/bot.js` — IA dos bots (também assume jogadores desconectados)
 - `server/index.js` — HTTP estático + salas via WebSocket
-- `public/` — cliente (telas, tabuleiro SVG, efeitos e sons)
+- `public/` — cliente (telas, tabuleiro SVG, efeitos e sons); `public/js/art.js` tem personagens, ícones e peças
+- `PRODUCT.md` e `DESIGN.md` — para quem é o jogo e as regras do visual
