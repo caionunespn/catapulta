@@ -687,48 +687,51 @@ input:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
 /* ---------- telas compactas (tablet e celular em pé) ---------- */
 @media (max-width: 1100px) {
   .only-compact { display: grid !important; }
-  #screen-game { grid-template: "players" auto "stage" minmax(0, 1fr) "hud" auto / minmax(0, 1fr); gap: 6px; --u: 6px; }
+  #screen-game { grid-template: "players" auto "stage" minmax(0, 1fr) "hud" auto / minmax(0, 1fr); gap: 4px; --u: 4px; }
   #players { flex-direction: row; overflow: visible; gap: 5px; }
-  .pl { flex: 1 1 0; min-width: 0; grid-template-columns: 34px minmax(0, 1fr); gap: 6px; padding: 5px 7px 5px 5px; border-radius: 12px; overflow: hidden; }
-  .pl-av { width: 34px; height: 34px; }
-  .pl-lamp { width: 10px; height: 10px; right: -2px; top: -2px; }
-  .pl-name { font-size: 13.5px; }
+  .pl { flex: 1 1 0; min-width: 0; grid-template-columns: 32px minmax(0, 1fr); gap: 5px; padding: 4px 6px 4px 4px; border-radius: 11px; overflow: hidden; }
+  .pl-av { width: 32px; height: 32px; }
+  .pl-lamp { width: 9px; height: 9px; right: -2px; top: -2px; }
+  .pl-name { font-size: 13px; }
   .pl-name small, .pl-badges { display: none; }
-  .pl-stats { margin-top: 2px; font-size: 12.5px; gap: 5px; }
+  .pl-stats { margin-top: 1px; font-size: 12px; gap: 5px; }
   .st-vp { display: inline-flex !important; }
   .pl-stats span:nth-child(n+4) { display: none; }
   .pl-vp { display: none; }
   #stage > .garland { display: none; }
   #banner { top: 4px; left: 4px; translate: 0 0; max-width: calc(100% - 144px); font-size: 14px; padding: 5px 10px 4px; text-align: left; transform-origin: 20px -20px; border-radius: 9px; }
   #corner { top: 2px; right: 2px; gap: 4px; }
-  .chip-btn { width: 38px; height: 38px; padding: 6px; }
-  #rank { top: 44px; right: 2px; gap: 3px; pointer-events: none; }
+  .chip-btn { width: 36px; height: 36px; padding: 5px; }
+  #rank { top: 42px; right: 2px; gap: 3px; pointer-events: none; }
   .rk-chip { padding: 1.5px 4px 1.5px 5px; gap: 3px; }
   .rk-pos { font-size: 10px; }
   .rk-av { width: 19px; height: 19px; }
-  .zoom-btn { width: 27px; height: 27px; font-size: 14px; }
-  #offer { bottom: 56px; width: calc(100% - 12px); }
+  #zoom-ctrl { display: none; }
+  #react { bottom: 4px; left: 4px; }
+  #dice { bottom: 4px; right: 4px; gap: 6px; }
+  #offer { bottom: 50px; width: calc(100% - 12px); }
   #side { display: none; position: fixed; z-index: 18; inset: calc(56px + var(--sat)) 8px calc(12px + var(--sab)) 8px; padding: 12px; background: var(--night-2); border: 2px solid var(--ink); border-radius: 16px; box-shadow: 0 24px 60px rgba(0, 0, 0, .75); }
   #side.open { display: flex; animation: drop-in .35s var(--out) both; }
-  #hud { grid-template-columns: minmax(0, 1fr); gap: 6px; padding: 7px 8px; border-radius: 14px; }
-  .hand { justify-content: center; gap: clamp(4px, 1.8vw, 8px); }
-  .card { width: clamp(42px, 13vw, 54px); height: 50px; border-radius: 9px; }
-  .card .ico.l { width: 26px; height: 26px; }
-  .card .n { min-width: 20px; height: 20px; font-size: 11.5px; line-height: 16px; right: -5px; top: -6px; }
-  .tricks { justify-content: center; gap: 5px; }
-  .me-vp { font-size: 15px; padding: 2px 4px; }
-  .trick { font-size: 13px; padding: 3px 7px 3px 4px; }
-  .trick .ico { width: 20px; height: 20px; }
-  .actions { flex-wrap: wrap; justify-content: center; gap: 6px; }
+  #hud { grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 5px 7px; border-radius: 13px; }
+  .hand { justify-content: center; gap: clamp(4px, 1.6vw, 7px); }
+  .card { width: clamp(38px, 11.8vw, 48px); height: 42px; border-radius: 8px; padding-bottom: 2px; box-shadow: inset 0 -3px 0 var(--cream-2), 0 3px 7px rgba(0, 0, 0, .35); }
+  .card .ico.l { width: 22px; height: 22px; }
+  .card .n { min-width: 18px; height: 18px; font-size: 10.5px; line-height: 14px; right: -4px; top: -5px; padding: 0 4px; }
+  .tricks:not(.has-tricks), .tricks .me-vp { display: none; }
+  .tricks { justify-content: center; gap: 4px; }
+  .trick { font-size: 12px; padding: 2px 6px 2px 3px; border-radius: 8px; }
+  .trick .ico { width: 17px; height: 17px; }
+  .trick .n { font-size: 11px; padding: 0 4px; }
+  .actions { flex-wrap: wrap; justify-content: center; gap: 4px; }
   .builds { flex: 1 1 100%; justify-content: center; gap: 4px; }
-  .act-btn { flex: 1 1 0; min-width: 0; overflow: hidden; padding: 4px 2px 5px; font-size: 12px; letter-spacing: .01em; border-radius: 9px; }
-  .act-btn .ico.l { width: 22px; height: 22px; }
-  .act-btn .cost { height: 12px; }
-  .cost .ico.s { width: 12px; height: 12px; flex: 0 1 12px; min-width: 7px; }
-  .primary { flex: 1 1 100%; min-height: 44px; font-size: 17px; padding: 8px 14px; border-radius: 11px; }
-  .primary .ico { width: 24px; height: 24px; }
-  .die { width: 42px; height: 42px; padding: 6px; border-radius: 10px; }
-  .die i { width: 6.5px; height: 6.5px; }
+  .act-btn { flex: 1 1 0; min-width: 0; overflow: hidden; padding: 3px 2px 3px; font-size: 11px; letter-spacing: .01em; border-radius: 8px; gap: 0; }
+  .act-btn .ico.l { width: 19px; height: 19px; }
+  .act-btn .cost { height: 11px; }
+  .cost .ico.s { width: 11px; height: 11px; flex: 0 1 11px; min-width: 6px; }
+  .primary { flex: 1 1 100%; min-height: 36px; font-size: 15px; padding: 6px 12px; border-radius: 10px; }
+  .primary .ico { width: 20px; height: 20px; }
+  .die { width: 38px; height: 38px; padding: 5px; border-radius: 9px; }
+  .die i { width: 6px; height: 6px; }
   #modal-root { place-items: end center; padding: 10px 8px calc(8px + var(--sab)); }
   .modal { border-radius: 18px 18px 14px 14px; padding: 16px 12px 14px; gap: 10px; }
 }
@@ -741,21 +744,24 @@ input:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
   .seat { min-height: 124px; }
   .swatch { width: 46px; height: 46px; }
   #players { gap: 4px; }
-  .pl { grid-template-columns: 26px minmax(0, 1fr); gap: 2px 5px; padding: 4px 5px; border-radius: 10px; }
-  .pl-av { width: 26px; height: 26px; }
+  .pl { grid-template-columns: 24px minmax(0, 1fr); gap: 1px 4px; padding: 3px 5px; border-radius: 9px; }
+  .pl-av { width: 24px; height: 24px; }
   .pl-lamp { width: 8px; height: 8px; right: -1px; top: -1px; border-width: 1.5px; }
   .pl-info { display: contents; }
-  .pl-name { align-self: center; font-size: 12px; }
-  .pl-stats { grid-column: 1 / -1; justify-content: flex-start; margin: 0; gap: 6px; font-size: 12px; }
-  .pl-stats .ico { width: 12px; height: 12px; }
+  .pl-name { align-self: center; font-size: 11.5px; }
+  .pl-stats { grid-column: 1 / -1; justify-content: flex-start; margin: 0; gap: 5px; font-size: 11.5px; }
+  .pl-stats .ico { width: 11px; height: 11px; }
   .pl-stats span:nth-child(n+3) { display: none; }
-  #banner { max-width: calc(100% - 122px); font-size: 13px; padding: 4px 8px; }
-  .chip-btn { width: 34px; height: 34px; padding: 5px; }
-  #rank { top: 40px; }
+  #banner { max-width: calc(100% - 118px); font-size: 12.5px; padding: 4px 8px; }
+  .chip-btn { width: 32px; height: 32px; padding: 5px; }
+  #rank { top: 38px; }
   .garland .gl-seg:nth-child(n+4) { display: none; }
-  .act-btn { font-size: 11px; padding: 3px 1px 4px; }
-  .act-btn .ico.l { width: 20px; height: 20px; }
-  .cost .ico.s { width: 11px; height: 11px; flex: 0 1 11px; min-width: 6px; }
+  .card { width: clamp(36px, 11.2vw, 44px); height: 38px; }
+  .card .ico.l { width: 20px; height: 20px; }
+  .act-btn { font-size: 10.5px; padding: 2px 1px 3px; }
+  .act-btn .ico.l { width: 17px; height: 17px; }
+  .cost .ico.s { width: 10px; height: 10px; flex: 0 1 10px; min-width: 5.5px; }
+  .primary { min-height: 34px; font-size: 14px; padding: 5px 10px; }
   .stepper .pm button { width: 26px; height: 28px; font-size: 14px; }
   .steppers { gap: 4px; }
   .tab-btn { font-size: 13px; padding: 6px 8px; }
@@ -769,44 +775,45 @@ input:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
 /* ---------- celular deitado ---------- */
 @media (orientation: landscape) and (max-height: 540px) {
   .only-compact { display: grid !important; }
-  #screen-game { grid-template: "players stage hud" minmax(0, 1fr) / 58px minmax(0, 1fr) 236px; gap: 6px; --u: 6px; }
+  #screen-game { grid-template: "players stage hud" minmax(0, 1fr) / 54px minmax(0, 1fr) 216px; gap: 5px; --u: 5px; }
   #players { flex-direction: column; overflow: hidden auto; }
-  .pl { flex: 0 0 auto; grid-template-columns: 1fr; justify-items: center; gap: 2px; padding: 5px 2px 4px; border-radius: 12px; }
-  .pl-av { width: 36px; height: 36px; }
+  .pl { flex: 0 0 auto; grid-template-columns: 1fr; justify-items: center; gap: 2px; padding: 4px 2px 3px; border-radius: 11px; }
+  .pl-av { width: 34px; height: 34px; }
   .pl-info { display: flex; flex-direction: column; align-items: center; min-width: 0; }
   .pl-name, .pl-badges { display: none; }
-  .pl-stats { margin: 0; font-size: 12px; gap: 4px; }
+  .pl-stats { margin: 0; font-size: 11.5px; gap: 4px; }
   .st-vp { display: inline-flex !important; }
-  .pl-stats .ico { width: 12px; height: 12px; }
+  .pl-stats .ico { width: 11px; height: 11px; }
   .pl-stats span:nth-child(n+3) { display: none; }
   .pl-vp { display: none; }
   #stage > .garland { display: none; }
-  #banner { top: 2px; left: 2px; translate: 0 0; max-width: calc(100% - 134px); font-size: 13.5px; padding: 4px 9px; text-align: left; }
+  #banner { top: 2px; left: 2px; translate: 0 0; max-width: calc(100% - 134px); font-size: 13px; padding: 4px 8px; text-align: left; }
   #corner { top: 0; right: 0; gap: 4px; }
-  .chip-btn { width: 36px; height: 36px; padding: 6px; }
-  #rank { top: 40px; right: 2px; gap: 3px; pointer-events: none; }
+  .chip-btn { width: 34px; height: 34px; padding: 5px; }
+  #rank { top: 38px; right: 2px; gap: 3px; pointer-events: none; }
   .rk-chip { padding: 1.5px 4px; gap: 3px; }
   .rk-pos { font-size: 10px; }
   .rk-av { width: 18px; height: 18px; }
-  .zoom-btn { width: 26px; height: 26px; font-size: 14px; }
+  #zoom-ctrl { display: none; }
   #side { display: none; position: fixed; z-index: 18; inset: 8px 8px 8px auto; width: min(340px, 60vw); padding: 10px; background: var(--night-2); border: 2px solid var(--ink); border-radius: 16px; box-shadow: 0 24px 60px rgba(0, 0, 0, .75); }
   #side.open { display: flex; }
-  #hud { grid-template-columns: minmax(0, 1fr); align-content: start; gap: 7px; padding: 8px; overflow: hidden auto; min-height: 0; }
+  #hud { grid-template-columns: minmax(0, 1fr); align-content: start; gap: 5px; padding: 6px; overflow: hidden auto; min-height: 0; }
   .hand { gap: 4px; justify-content: space-between; }
-  .card { width: 38px; height: 46px; border-radius: 8px; }
-  .card .ico.l { width: 24px; height: 24px; }
-  .card .n { min-width: 20px; height: 20px; font-size: 11px; line-height: 16px; right: -6px; top: -7px; }
+  .card { width: 35px; height: 42px; border-radius: 7px; }
+  .card .ico.l { width: 21px; height: 21px; }
+  .card .n { min-width: 18px; height: 18px; font-size: 10.5px; line-height: 14px; right: -5px; top: -6px; }
+  .tricks:not(.has-tricks), .tricks .me-vp { display: none; }
   .tricks { justify-content: flex-start; gap: 4px; }
-  .trick { font-size: 12px; padding: 2px 6px 2px 3px; }
-  .trick .ico { width: 18px; height: 18px; }
-  .actions { flex-direction: column; }
-  .builds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 5px; }
-  .act-btn { min-width: 0; padding: 4px 2px 5px; font-size: 12px; }
-  .act-btn .ico.l { width: 22px; height: 22px; }
-  .act-btn .cost { height: 13px; }
-  .cost .ico.s { width: 13px; height: 13px; }
-  .primary { min-width: 0; font-size: 17px; padding: 8px 10px; }
-  .die { width: 40px; height: 40px; padding: 6px; }
+  .trick { font-size: 11.5px; padding: 2px 5px 2px 3px; }
+  .trick .ico { width: 16px; height: 16px; }
+  .actions { flex-direction: column; gap: 4px; }
+  .builds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+  .act-btn { min-width: 0; padding: 3px 2px 4px; font-size: 11px; }
+  .act-btn .ico.l { width: 19px; height: 19px; }
+  .act-btn .cost { height: 11px; }
+  .cost .ico.s { width: 11px; height: 11px; }
+  .primary { min-width: 0; font-size: 15px; padding: 6px 8px; min-height: 36px; }
+  .die { width: 38px; height: 38px; padding: 5px; }
   .die i { width: 6px; height: 6px; }
   #modal-root { place-items: center; }
   .modal { padding: 14px; gap: 8px; }

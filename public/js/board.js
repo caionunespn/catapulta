@@ -142,6 +142,10 @@ export class BoardView {
       const t = e.target.closest('[data-pick]');
       if (t) onPick(t.dataset.pick, Number(t.dataset.id));
     });
+
+    window.addEventListener('resize', () => {
+      if (this.b) this.applyCam();
+    });
   }
 
   applyCam() {
@@ -149,8 +153,11 @@ export class BoardView {
     this.cam.z = Math.min(2.6, Math.max(0.75, this.cam.z));
     this.cam.x = Math.min(maxPan, Math.max(-maxPan, this.cam.x));
     this.cam.y = Math.min(maxPan, Math.max(-maxPan, this.cam.y));
-    const w = 660 / this.cam.z;
-    const h = 640 / this.cam.z;
+    const compact = typeof window !== 'undefined' && window.innerWidth <= 1100;
+    const baseW = compact ? 626 : 652;
+    const baseH = compact ? 566 : 624;
+    const w = baseW / this.cam.z;
+    const h = baseH / this.cam.z;
     const vx = this.cam.x - w / 2;
     const vy = this.cam.y - h / 2;
     this.svg.setAttribute('viewBox', `${vx.toFixed(1)} ${vy.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`);

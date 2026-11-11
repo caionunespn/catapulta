@@ -742,7 +742,7 @@ function renderHud() {
     'hud',
     $('#hud'),
     `<div class="hand">${hand}</div>
-     <div class="tricks"><span class="me-vp" title="Seus pontos (com os secretos)">${ico('star')}${me.vpTotal ?? me.vp}<small>/10</small></span>${tricks}</div>
+     <div class="tricks${tricks ? ' has-tricks' : ''}"><span class="me-vp" title="Seus pontos (com os secretos)">${ico('star')}${me.vpTotal ?? me.vp}<small>/10</small></span>${tricks}</div>
      <div class="actions">${builds ? `<div class="builds">${builds}</div>` : ''}${primary}</div>`
   );
 }
