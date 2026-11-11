@@ -5,7 +5,7 @@
 export const FIREBASE_CONFIG = {
   apiKey: 'AIzaSyCXJHoO5Q9Cqljkh6nAJIxSniBTW_ur85M',
   authDomain: 'habits-e8eb7.firebaseapp.com',
-  databaseURL: 'https://habits-e8eb7-default-rtdb.firebaseio.com',
+  databaseURL: 'https://habits-e8eb7-default-rtdb.europe-west1.firebasedatabase.app',
   projectId: 'habits-e8eb7',
   storageBucket: 'habits-e8eb7.firebasestorage.app',
   messagingSenderId: '862491398796',

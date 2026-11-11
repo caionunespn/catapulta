@@ -36,7 +36,7 @@ const SECURITY_HEADERS = {
   'Cross-Origin-Opener-Policy': 'same-origin',
   'Cross-Origin-Resource-Policy': 'same-origin',
   'Content-Security-Policy':
-    "default-src 'self'; script-src 'self' https://www.gstatic.com https://*.firebaseio.com https://*.firebasedatabase.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' ws: wss: https://www.gstatic.com https://*.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app wss://*.firebaseio.com wss://*.firebasedatabase.app; frame-src https://*.firebaseapp.com https://*.firebasedatabase.app; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
+    "default-src 'self'; script-src 'self' https://www.gstatic.com https://*.firebaseio.com https://*.firebasedatabase.app https://*.europe-west1.firebasedatabase.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' ws: wss: https://www.gstatic.com https://*.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app https://*.europe-west1.firebasedatabase.app wss://*.firebaseio.com wss://*.firebasedatabase.app wss://*.europe-west1.firebasedatabase.app; frame-src https://*.firebaseapp.com https://*.firebasedatabase.app https://*.europe-west1.firebasedatabase.app; object-src 'none'; base-uri 'self'; frame-ancestors 'none'",
 };
 
 const MAX_SEATS = 4;
