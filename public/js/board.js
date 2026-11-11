@@ -52,17 +52,138 @@ function texture(t) {
 const pts = (list) => list.map((p) => `${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
 
 export class BoardView {
-  constructor(svg, onPick) {
+  constructor(svg, onPick, onCam) {
     this.svg = svg;
+    this.onCam = onCam;
     this.b = null;
     this.prev = new Set();
     this.ready = false;
     this.last = {};
     this.lastCat = null;
+    this.cam = { x: 0, y: -2, z: 1 };
+    this.ptrs = new Map();
+    this.dragged = false;
+    this.downAt = { x: 0, y: 0 };
+    this.pinchDist = 0;
+
+    svg.addEventListener('pointerdown', (e) => {
+      if (e.button && e.button !== 0) return;
+      this.ptrs.set(e.pointerId, { x: e.clientX, y: e.clientY });
+      if (this.ptrs.size === 1) {
+        this.downAt = { x: e.clientX, y: e.clientY };
+        this.dragged = false;
+      } else if (this.ptrs.size === 2) {
+        this.dragged = true;
+        const [a, b] = [...this.ptrs.values()];
+        this.pinchDist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+      }
+    });
+
+    window.addEventListener('pointermove', (e) => {
+      if (!this.ptrs.has(e.pointerId)) return;
+      const prev = this.ptrs.get(e.pointerId);
+      const cur = { x: e.clientX, y: e.clientY };
+      this.ptrs.set(e.pointerId, cur);
+
+      if (this.ptrs.size === 1) {
+        if (!this.dragged && Math.hypot(cur.x - this.downAt.x, cur.y - this.downAt.y) > 6) {
+          this.dragged = true;
+          this.svg.classList.add('dragging');
+        }
+        if (this.dragged) {
+          const m = this.svg.getScreenCTM();
+          if (m && m.a && m.d) {
+            this.cam.x -= (cur.x - prev.x) / m.a;
+            this.cam.y -= (cur.y - prev.y) / m.d;
+            this.applyCam();
+          }
+        }
+      } else if (this.ptrs.size === 2) {
+        const [a, b] = [...this.ptrs.values()];
+        const dist = Math.hypot(a.x - b.x, a.y - b.y) || 1;
+        const midX = (a.x + b.x) / 2;
+        const midY = (a.y + b.y) / 2;
+        if (this.pinchDist > 0) {
+          this.zoomBy(dist / this.pinchDist, midX, midY);
+        }
+        this.pinchDist = dist;
+      }
+    });
+
+    const endPtr = (e) => {
+      if (!this.ptrs.has(e.pointerId)) return;
+      this.ptrs.delete(e.pointerId);
+      if (this.ptrs.size < 2) this.pinchDist = 0;
+      if (this.ptrs.size === 0) this.svg.classList.remove('dragging');
+    };
+    window.addEventListener('pointerup', endPtr);
+    window.addEventListener('pointercancel', endPtr);
+
+    svg.addEventListener(
+      'wheel',
+      (e) => {
+        e.preventDefault();
+        const factor = e.deltaY < 0 ? 1.15 : 1 / 1.15;
+        this.zoomBy(factor, e.clientX, e.clientY);
+      },
+      { passive: false }
+    );
+
+    svg.addEventListener('dblclick', (e) => {
+      if (e.target.closest('[data-pick]')) return;
+      this.resetCam();
+    });
+
     svg.addEventListener('click', (e) => {
+      if (this.dragged) {
+        this.dragged = false;
+        return;
+      }
       const t = e.target.closest('[data-pick]');
       if (t) onPick(t.dataset.pick, Number(t.dataset.id));
     });
+  }
+
+  applyCam() {
+    const maxPan = 240;
+    this.cam.z = Math.min(2.6, Math.max(0.75, this.cam.z));
+    this.cam.x = Math.min(maxPan, Math.max(-maxPan, this.cam.x));
+    this.cam.y = Math.min(maxPan, Math.max(-maxPan, this.cam.y));
+    const w = 660 / this.cam.z;
+    const h = 640 / this.cam.z;
+    const vx = this.cam.x - w / 2;
+    const vy = this.cam.y - h / 2;
+    this.svg.setAttribute('viewBox', `${vx.toFixed(1)} ${vy.toFixed(1)} ${w.toFixed(1)} ${h.toFixed(1)}`);
+    this.onCam?.(this.cam);
+  }
+
+  resetCam() {
+    this.cam = { x: 0, y: -2, z: 1 };
+    this.applyCam();
+  }
+
+  zoomBy(factor, clientX, clientY) {
+    const prevZ = this.cam.z;
+    const nextZ = Math.min(2.6, Math.max(0.75, prevZ * factor));
+    if (Math.abs(nextZ - prevZ) < 0.001) return;
+    if (clientX != null && clientY != null) {
+      const m = this.svg.getScreenCTM();
+      if (m) {
+        const p0 = new DOMPoint(clientX, clientY).matrixTransform(m.inverse());
+        this.cam.z = nextZ;
+        this.applyCam();
+        const m1 = this.svg.getScreenCTM();
+        if (m1) {
+          const p1 = new DOMPoint(clientX, clientY).matrixTransform(m1.inverse());
+          this.cam.x += p0.x - p1.x;
+          this.cam.y += p0.y - p1.y;
+          this.applyCam();
+          return;
+        }
+      }
+    }
+    this.cam.z = nextZ;
+    this.applyCam();
   }
 
   setBoard(b) {
@@ -71,6 +192,7 @@ export class BoardView {
     this.ready = false;
     this.last = {};
     this.lastCat = null;
+    this.cam = { x: 0, y: -2, z: 1 };
     const V = b.vertices;
     let foam = '';
     let shoreOut = '';
@@ -95,7 +217,7 @@ export class BoardView {
         let dots = '';
         for (let i = 0; i < k; i++) dots += `<circle class="pip" cx="${((i - (k - 1) / 2) * 4.4).toFixed(1)}" cy="9.500" r="1.500"/>`;
         const hot = t.number === 6 || t.number === 8 ? ' hot' : '';
-        token = `<g class="token${hot}" transform="translate(${t.x},${t.y})"><g class="token-in"><circle class="tk-shadow" cy="2.500" r="16"/><circle class="tk" r="16"/><text y="3.500">${t.number}</text>${dots}</g></g>`;
+        token = `<g class="token${hot}" transform="translate(${t.x},${t.y})"><g class="token-in"><circle class="tk-shadow" cy="2.500" r="16.5"/><circle class="tk" r="16.5"/><circle class="tk-ring" r="13.8"/><text y="3.500">${t.number}</text>${dots}</g></g>`;
       }
       tiles += `<g class="tile t-${t.terrain}" data-tile="${t.id}"><polygon class="hex" points="${outer}"/><polygon class="hex-in" points="${inner}"/>${texture(t)}<g class="decor">${decor}</g><polygon class="hex-glow" points="${outer}"/>${token}</g>`;
     }
@@ -108,9 +230,9 @@ export class BoardView {
       const pier = (v) => `M${V[v].x} ${V[v].y}L${p.x} ${p.y}`;
       ports +=
         `<g class="port"><path class="pier-out" d="${pier(p.a)}${pier(p.b)}"/><path class="pier" d="${pier(p.a)}${pier(p.b)}"/>` +
-        `<g transform="translate(${p.x},${p.y})"><rect class="sign-shadow" x="-18" y="-15.500" width="36" height="34" rx="8"/><rect class="sign" x="-18" y="-18" width="36" height="34" rx="8"/>${body}</g></g>`;
+        `<g transform="translate(${p.x},${p.y})"><rect class="sign-shadow" x="-18.5" y="-15.500" width="37" height="34" rx="8"/><rect class="sign" x="-18.5" y="-18" width="37" height="34" rx="8"/><rect class="sign-in" x="-15.5" y="-15" width="31" height="28" rx="5.5"/>${body}</g></g>`;
     }
-    this.svg.setAttribute('viewBox', '-330 -322 660 640');
+    this.applyCam();
     this.svg.innerHTML =
       `<defs><radialGradient id="sea-glow"><stop offset="0" stop-color="#2a8c95" stop-opacity=".95"/><stop offset=".62" stop-color="#1a5d6c" stop-opacity=".7"/><stop offset="1" stop-color="#143c4c" stop-opacity="0"/></radialGradient></defs>` +
       `<circle r="322" fill="url(#sea-glow)"/><g class="foam2">${foam}</g><g class="foam">${foam}</g>` +

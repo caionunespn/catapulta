@@ -160,6 +160,7 @@ function newCode() {
 }
 
 const cleanName = (n) => String(n || '').replace(/\s+/g, ' ').trim().slice(0, 14) || 'Jogador';
+const cleanBotLevel = (l) => (['easy', 'medium', 'hard'].includes(l) ? l : 'medium');
 const send = (ws, msg) => ws && ws.readyState === 1 && ws.send(JSON.stringify(msg));
 const freeColor = (room) => {
   for (let c = 0; c < COLORS; c++) if (!room.seats.some((s) => s.color === c)) return c;
@@ -175,11 +176,13 @@ function sendRoom(room) {
       code: room.code,
       you: room.seats.indexOf(seat),
       host: room.host === seat,
+      botLevel: room.botLevel || 'medium',
       inGame: !!room.game,
       seats: room.seats.map((s) => ({
         name: s.name,
         color: s.color,
         bot: s.bot,
+        botLevel: s.bot ? s.botLevel || room.botLevel || 'medium' : undefined,
         connected: s.connected,
         host: room.host === s,
       })),
@@ -247,7 +250,15 @@ function schedule(room) {
 function startGame(room) {
   room.order = shuffle([...room.seats]);
   room.order.forEach((s) => (s.hasBoard = false));
-  room.game = createGame(room.order.map((s) => ({ name: s.name, color: s.color, avatar: s.color, bot: s.bot })));
+  room.game = createGame(
+    room.order.map((s) => ({
+      name: s.name,
+      color: s.color,
+      avatar: s.color,
+      bot: s.bot,
+      botLevel: s.botLevel || room.botLevel || 'medium',
+    }))
+  );
   room.order.forEach((s, i) => (room.game.players[i].connected = s.bot || s.connected));
   sendRoom(room);
   flush(room);
@@ -328,7 +339,17 @@ const handlers = {
       }
       const code = newCode();
       if (!code) return send(ws, { t: 'err', m: 'Não foi possível criar sala', fatal: true });
-      room = { code, seats: [], host: null, game: null, order: [], timer: null, emptyAt: 0, lastActiveAt: Date.now() };
+      room = {
+        code,
+        seats: [],
+        host: null,
+        botLevel: cleanBotLevel(m.botLevel),
+        game: null,
+        order: [],
+        timer: null,
+        emptyAt: 0,
+        lastActiveAt: Date.now(),
+      };
       rooms.set(room.code, room);
     }
     if (!seat) {
@@ -376,12 +397,24 @@ const handlers = {
     sendRoom(room);
   },
 
-  addBot(ws) {
+  addBot(ws, m) {
     const { room, seat } = ws;
     if (!room || room.game || room.host !== seat || room.seats.length >= MAX_SEATS) return;
+    if (m && m.botLevel) room.botLevel = cleanBotLevel(m.botLevel);
+    const botLevel = room.botLevel || 'medium';
     const used = room.seats.map((s) => s.name);
     const name = shuffle(BOT_NAMES.filter((n) => !used.includes(n)))[0];
-    room.seats.push({ token: randomUUID(), name, color: freeColor(room), bot: true, ws: null, connected: true });
+    room.seats.push({ token: randomUUID(), name, color: freeColor(room), bot: true, botLevel, ws: null, connected: true });
+    room.lastActiveAt = Date.now();
+    sendRoom(room);
+  },
+
+  botLevel(ws, m) {
+    const { room, seat } = ws;
+    if (!room || room.game || room.host !== seat) return;
+    const lv = cleanBotLevel(m && m.level);
+    room.botLevel = lv;
+    for (const s of room.seats) if (s.bot) s.botLevel = lv;
     room.lastActiveAt = Date.now();
     sendRoom(room);
   },

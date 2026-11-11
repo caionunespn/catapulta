@@ -37,12 +37,12 @@ Vermelho só para passar a vez, recusar e o 7. Texto sobre tábua escura é crem
 
 ## Formas
 
-- **Tábua** (`.panel`, HUD, cartões de jogador): fundo `--board`, contorno piche de 2px e um filete creme
-  interno. Sombra suave, nunca bloco de sombra dura.
+- **Tábua** (`.panel`, HUD, cartões de jogador, modais): fundo `--board`, contorno piche de 2px e um filete creme
+  interno (`--line`). Sombra suave com deslocamento vertical real, nunca brilho neon de offset zero.
 - **Placa** (`.btn`): tinta chapada, contorno piche, borda inferior no tom escuro da mesma cor (espessura)
   e sombra difusa. Afunda ao pressionar.
-- **Cartaz** (modais, oferta de troca): creme com texto piche; no celular sobe da base da tela.
-- **Cordão de lâmpadas** (`.garland`): assinatura do mundo, no topo da tela inicial e do palco.
+- **Cartaz / Modal** (`.modal`, `.offer-card`): também seguem a tábua escura de quermesse noturna (`--board` / `--night-2`) com títulos em amarelo ovo (`--yellow`), texto creme (`--cream`) e subcartões em `--night-2`. No celular sobe da base da tela.
+- **Cordão de lâmpadas** (`.garland`): assinatura do mundo, no topo da tela inicial e do palco. Lâmpadas acesas estáticas com reflexo de vidro, sem pisca-pisca infinito.
 
 ## Personagens e ícones
 
@@ -57,7 +57,7 @@ um único brilho por peça.
 
 ## Movimento
 
-- Peças, dados e fichas do jogo usam mola (`--spring`): caem, amassam e assentam.
+- Peças, dados e fichas do jogo usam desaceleração rápida (`--snap: cubic-bezier(.22, 1, .36, 1)`): caem, amassam e assentam sem quique artificial.
 - Interface (cartazes, avisos, sala) usa desaceleração suave (`--out`), sem quique.
 - Vida ambiente no tabuleiro: gente e carroças andando nas trilhas, fumaça das chaminés, bandeiras.
 - A placa da vez balança uma única vez quando vira a sua vez; nada pisca sem motivo.

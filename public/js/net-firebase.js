@@ -24,6 +24,7 @@ const unpack = (t) => {
 const NO_KEY = '-';
 
 const cleanName = (n) => String(n || '').replace(/\s+/g, ' ').trim().slice(0, 14) || 'Jogador';
+const cleanBotLevel = (l) => (['easy', 'medium', 'hard'].includes(l) ? l : 'medium');
 
 function randomCode() {
   const abc = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -59,7 +60,7 @@ export function isFirebaseConfigured() {
   return Boolean(FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.databaseURL);
 }
 
-export async function connectFirebase({ name, code, key }, onMsg) {
+export async function connectFirebase({ name, code, key, botLevel }, onMsg) {
   let ctx;
   try {
     ctx = await initFirebase();
@@ -130,6 +131,7 @@ export async function connectFirebase({ name, code, key }, onMsg) {
   if (isHost) {
     const room = {
       code: roomCode,
+      botLevel: cleanBotLevel(botLevel),
       seats: [],
       order: [],
       game: null,
@@ -148,6 +150,7 @@ export async function connectFirebase({ name, code, key }, onMsg) {
       if (savedSnap.exists()) {
         const st = savedSnap.val();
         if (st && Array.isArray(st.seats)) {
+          if (st.botLevel) room.botLevel = cleanBotLevel(st.botLevel);
           room.seats = st.seats.map((s) => ({
             ...s,
             lastEmote: 0,
@@ -194,7 +197,7 @@ export async function connectFirebase({ name, code, key }, onMsg) {
       if (!room.game) hostSeat.name = cleanName(name);
     }
 
-    const syncAll = async (events = [], includeBoard = false) => {
+    const syncAll = async (events = [], includeBoard = false, includeRoom = true) => {
       if (closed) return;
       const g = room.game;
       const seatsPub = room.seats.map((s) => ({
@@ -202,24 +205,43 @@ export async function connectFirebase({ name, code, key }, onMsg) {
         name: s.name,
         color: s.color,
         bot: s.bot,
+        botLevel: s.bot ? s.botLevel || room.botLevel || 'medium' : null,
         connected: s.connected,
         host: s.uid === uid,
       }));
 
+      room.seq++;
       const patch = {};
-      patch.public = {
-        code: room.code,
-        inGame: !!g,
-        seats: seatsPub,
-        boardJson: g ? room.boardJson : null,
-        seq: ++room.seq,
-      };
+      if (includeRoom) {
+        patch.public = {
+          code: room.code,
+          botLevel: room.botLevel,
+          inGame: !!g,
+          seats: seatsPub,
+          boardJson: g ? room.boardJson : null,
+          seq: room.seq,
+        };
+        if (!g) patch.views = null;
+        // Atualiza estado da sala no Anfitrião antes do estado da partida (garante tela visível ao desenhar o tabuleiro)
+        onMsg({
+          t: 'room',
+          code: room.code,
+          you: room.seats.indexOf(hostSeat),
+          host: true,
+          botLevel: room.botLevel,
+          inGame: !!g,
+          seats: seatsPub.map(({ uid: _, ...rest }) => rest),
+        });
+      }
+
       patch.hostState = {
-        seats: room.seats.map(({ uid: u, name: nm, color, bot, connected, goneAt }) => ({
+        botLevel: room.botLevel,
+        seats: room.seats.map(({ uid: u, name: nm, color, bot, botLevel: bl, connected, goneAt }) => ({
           uid: u,
           name: nm,
           color,
           bot,
+          botLevel: bl || null,
           connected,
           goneAt: goneAt || 0,
         })),
@@ -246,16 +268,6 @@ export async function connectFirebase({ name, code, key }, onMsg) {
           }
         });
       }
-
-      // Atualiza tela local do Anfitrião
-      onMsg({
-        t: 'room',
-        code: room.code,
-        you: room.seats.indexOf(hostSeat),
-        host: true,
-        inGame: !!g,
-        seats: seatsPub.map(({ uid: _, ...rest }) => rest),
-      });
 
       try {
         await update(ref(db, `catapulta/rooms/${roomCode}`), patch);
@@ -298,13 +310,13 @@ export async function connectFirebase({ name, code, key }, onMsg) {
             }
           }
         }
-        flushHost();
+        flushHost(false, false);
       }, pick.delay);
     };
 
-    const flushHost = (includeBoard = false) => {
+    const flushHost = (includeBoard = false, includeRoom = false) => {
       const evs = room.game ? drainEvents(room.game) : [];
-      syncAll(evs, includeBoard);
+      syncAll(evs, includeBoard, includeRoom);
       scheduleBots();
     };
 
@@ -349,7 +361,7 @@ export async function connectFirebase({ name, code, key }, onMsg) {
           };
           room.seats.push(seat);
         }
-        flushHost(true);
+        flushHost(true, true);
         return;
       }
 
@@ -361,11 +373,11 @@ export async function connectFirebase({ name, code, key }, onMsg) {
         if (!room.game) {
           const idx = room.seats.indexOf(seat);
           if (idx >= 0) room.seats.splice(idx, 1);
-          syncAll();
+          syncAll([], false, true);
         } else {
           const i = room.order.indexOf(seat);
           if (i >= 0) room.game.players[i].connected = false;
-          flushHost();
+          flushHost(false, true);
         }
         return;
       }
@@ -376,12 +388,13 @@ export async function connectFirebase({ name, code, key }, onMsg) {
         if (!Number.isInteger(c) || c < 0 || c >= COLORS) return;
         if (room.seats.some((s) => s !== seat && s.color === c)) return;
         seat.color = c;
-        syncAll();
+        syncAll([], false, true);
         return;
       }
 
       if (m.t === 'addBot' && fromUid === uid) {
         if (room.game || room.seats.length >= MAX_SEATS) return;
+        if (m.botLevel) room.botLevel = cleanBotLevel(m.botLevel);
         const used = room.seats.map((s) => s.name);
         const botName = shuffle(BOT_NAMES.filter((n) => !used.includes(n)))[0];
         room.seats.push({
@@ -389,9 +402,19 @@ export async function connectFirebase({ name, code, key }, onMsg) {
           name: botName,
           color: freeColor(),
           bot: true,
+          botLevel: room.botLevel,
           connected: true,
         });
-        syncAll();
+        syncAll([], false, true);
+        return;
+      }
+
+      if (m.t === 'botLevel' && fromUid === uid) {
+        if (room.game) return;
+        const lv = cleanBotLevel(m.level);
+        room.botLevel = lv;
+        for (const s of room.seats) if (s.bot) s.botLevel = lv;
+        syncAll([], false, true);
         return;
       }
 
@@ -402,7 +425,7 @@ export async function connectFirebase({ name, code, key }, onMsg) {
         if (!target || target.uid === uid) return;
         room.seats.splice(m.i, 1);
         if (!target.bot) sendErrTo(target.uid, 'Você foi removido da sala', true);
-        syncAll();
+        syncAll([], false, true);
         return;
       }
 
@@ -413,11 +436,17 @@ export async function connectFirebase({ name, code, key }, onMsg) {
         }
         room.order = shuffle([...room.seats]);
         room.game = createGame(
-          room.order.map((s) => ({ name: s.name, color: s.color, avatar: s.color, bot: s.bot }))
+          room.order.map((s) => ({
+            name: s.name,
+            color: s.color,
+            avatar: s.color,
+            bot: s.bot,
+            botLevel: s.botLevel || room.botLevel || 'medium',
+          }))
         );
         room.boardJson = pack(room.game.board);
         room.order.forEach((s, i) => (room.game.players[i].connected = s.bot || s.connected));
-        flushHost(true);
+        flushHost(true, true);
         return;
       }
 
@@ -434,7 +463,7 @@ export async function connectFirebase({ name, code, key }, onMsg) {
         }
         const err = act(room.game, i, m.a);
         if (err) return sendErrTo(fromUid, err);
-        flushHost();
+        flushHost(false, false);
         return;
       }
 
@@ -455,7 +484,7 @@ export async function connectFirebase({ name, code, key }, onMsg) {
         room.game = null;
         room.order = [];
         room.seats = room.seats.filter((s) => s.bot || s.connected);
-        syncAll();
+        syncAll([], false, true);
       }
     };
 
@@ -486,13 +515,13 @@ export async function connectFirebase({ name, code, key }, onMsg) {
       onValue(ref(db, '.info/connected'), (snap) => {
         if (closed || !snap.val()) return;
         onDisconnect(hostOffRef).set(true).catch(() => {});
-        if (hostWasOnline) syncAll();
+        if (hostWasOnline) syncAll([], false, true);
         hostWasOnline = true;
       })
     );
 
     onMsg({ t: 'hello', token: uid, code: roomCode });
-    flushHost(true);
+    flushHost(true, true);
 
     return {
       send(m) {
@@ -501,7 +530,7 @@ export async function connectFirebase({ name, code, key }, onMsg) {
           remove(ref(db, `catapulta/rooms/${roomCode}`)).catch(() => {});
           return;
         }
-        handlePlayerMsg(uid, m);
+        queueMicrotask(() => handlePlayerMsg(uid, m));
       },
       close() {
         cleanup();
@@ -513,6 +542,7 @@ export async function connectFirebase({ name, code, key }, onMsg) {
   let seq = 0;
   let hasBoard = false;
   let cachedBoard = null;
+  let lastBoardJson = null;
   let lastGame = null;
   let lastViewSeq = 0;
   let lastEmoteId = 0;
@@ -541,9 +571,15 @@ export async function connectFirebase({ name, code, key }, onMsg) {
         onMsg({ t: 'err', m: 'O anfitrião encerrou a sala', fatal: true });
         return;
       }
-      if (pub.boardJson) cachedBoard = unpack(pub.boardJson);
-      else if (pub.board) cachedBoard = pub.board;
-      else {
+      if (pub.boardJson) {
+        if (pub.boardJson !== lastBoardJson) {
+          lastBoardJson = pub.boardJson;
+          cachedBoard = unpack(pub.boardJson);
+        }
+      } else if (pub.board) {
+        cachedBoard = pub.board;
+      } else {
+        lastBoardJson = null;
         cachedBoard = null;
         hasBoard = false;
         lastGame = null;
@@ -564,6 +600,7 @@ export async function connectFirebase({ name, code, key }, onMsg) {
           code: roomCode,
           you: youIdx,
           host: false,
+          botLevel: pub.botLevel || 'medium',
           inGame: !!pub.inGame,
           seats: seatsList.map(({ uid: _, ...rest }) => rest),
         });
@@ -571,7 +608,7 @@ export async function connectFirebase({ name, code, key }, onMsg) {
       // o estado do jogo pode chegar antes do tabuleiro: reenvia com ele assim que der
       if (cachedBoard && !hasBoard && lastGame) {
         hasBoard = true;
-        onMsg({ ...lastGame, ev: [], board: cachedBoard });
+        onMsg({ ...lastGame, board: cachedBoard });
       }
     })
   );
@@ -589,7 +626,8 @@ export async function connectFirebase({ name, code, key }, onMsg) {
         if (!data || !data.s) return;
         const msg = { t: 'game', s: data.s, ev: data.ev || [] };
         lastGame = msg;
-        if (!hasBoard && cachedBoard) {
+        if (!hasBoard) {
+          if (!cachedBoard) return;
           msg.board = cachedBoard;
           hasBoard = true;
         }

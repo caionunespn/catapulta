@@ -51,10 +51,18 @@ function checkBoard(b) {
 
 const stats = { turns: [], actions: [], winners: [0, 0, 0, 0], stuck: 0 };
 
+const LEVELS = ['easy', 'medium', 'hard'];
+
 for (let g = 0; g < GAMES; g++) {
   const n = 2 + (g % 3);
   const s = createGame(
-    Array.from({ length: n }, (_, i) => ({ name: 'Bot' + i, color: i, avatar: i, bot: true }))
+    Array.from({ length: n }, (_, i) => ({
+      name: 'Bot' + i,
+      color: i,
+      avatar: i,
+      bot: true,
+      botLevel: LEVELS[(g + i) % LEVELS.length],
+    }))
   );
   checkBoard(s.board);
   let steps = 0;

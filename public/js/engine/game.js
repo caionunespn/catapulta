@@ -2,6 +2,7 @@
 import { RES, TERRAIN_RES, makeBoard, shuffle } from './board.js';
 
 export const WIN_POINTS = 10;
+export const BOT_LEVELS = ['easy', 'medium', 'hard'];
 
 export const COSTS = {
   road: { wood: 1, stone: 1 },
@@ -41,6 +42,7 @@ export function createGame(infos, rnd = Math.random) {
       color: p.color,
       avatar: p.avatar,
       bot: !!p.bot,
+      botLevel: BOT_LEVELS.includes(p.botLevel) ? p.botLevel : 'medium',
       connected: true,
       hand: zero(),
       cards: [],
@@ -636,6 +638,7 @@ export function view(s, me) {
       color: pl.color,
       avatar: pl.avatar,
       bot: pl.bot,
+      botLevel: pl.bot ? pl.botLevel : undefined,
       connected: pl.connected,
       handCount: handCount(pl.hand),
       cardCount: pl.cards.length,

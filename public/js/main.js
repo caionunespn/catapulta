@@ -23,6 +23,7 @@ const CARDS = {
   gale: { name: 'Vendaval', icon: 'c-gale', desc: 'Cada jogador passa 1 carta aleatória para o próximo da roda.' },
 };
 const EMOTES = ['😂', '😭', '😡', '😎', '🙏', '🎉', '👀', '🧀'];
+const BOT_LEVEL_NAMES = { easy: 'Fácil', medium: 'Médio', hard: 'Difícil' };
 
 // ---------- utilidades ----------
 const $ = (s) => document.querySelector(s);
@@ -56,6 +57,7 @@ const save = () => {
     localStorage.setItem(KEY, JSON.stringify(saved));
   } catch {}
 };
+const getBotLevel = () => (['easy', 'medium', 'hard'].includes(saved.botLevel) ? saved.botLevel : 'medium');
 
 let ws = null;
 let retry = null;
@@ -68,9 +70,12 @@ let prevHand = null;
 let prevVp = [];
 let lastLogId = 0;
 const cache = {};
-const ui = { pending: false, mode: null, modal: null, card: null, plenty: [], give: zero(), get: zero(), discard: zero(), hideEnd: false, lastModal: null };
+const ui = { pending: false, mode: null, modal: null, rulesTab: 'rules', card: null, plenty: [], give: zero(), get: zero(), discard: zero(), hideEnd: false, lastModal: null };
 
-const boardView = new BoardView($('#board'), onPick);
+const boardView = new BoardView($('#board'), onPick, (cam) => {
+  const rst = $('#btn-zoom-reset');
+  if (rst) rst.classList.toggle('hidden', Math.abs(cam.z - 1) < 0.03 && Math.hypot(cam.x, cam.y + 2) < 8);
+});
 
 // ---------- rede ----------
 let fbConn = null;
@@ -87,13 +92,14 @@ function connect(code) {
     ws = null;
   }
   if (USE_FIREBASE) {
-    connectFirebase({ name: saved.name, code, key: saved.key }, onMsg).then((conn) => {
+    connectFirebase({ name: saved.name, code, key: saved.key, botLevel: getBotLevel() }, onMsg).then((conn) => {
       fbConn = conn;
     });
     return;
   }
   const sock = (ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${location.host}`));
-  sock.onopen = () => sock.send(JSON.stringify({ t: 'hello', name: saved.name, token: saved.token, key: saved.key, code }));
+  sock.onopen = () =>
+    sock.send(JSON.stringify({ t: 'hello', name: saved.name, token: saved.token, key: saved.key, code, botLevel: getBotLevel() }));
   sock.onmessage = (e) => onMsg(JSON.parse(e.data));
   sock.onclose = () => {
     if (ws !== sock) return;
@@ -125,6 +131,9 @@ function goHome() {
   G = null;
   epoch++;
   queue.length = 0;
+  prevHand = null;
+  prevVp = [];
+  lastLogId = 0;
   saved.code = null;
   save();
   if (fbConn) {
@@ -137,6 +146,8 @@ function goHome() {
     ws = null;
   }
   setUrl(null);
+  ui.pending = false;
+  ui.mode = null;
   ui.modal = null;
   renderScreen();
 }
@@ -155,6 +166,11 @@ function onMsg(m) {
         G = null;
         epoch++;
         queue.length = 0;
+        prevHand = null;
+        prevVp = [];
+        lastLogId = 0;
+        ui.pending = false;
+        ui.mode = null;
         ui.modal = null;
       }
       renderScreen();
@@ -277,8 +293,9 @@ function centerOf(el) {
 
 async function animateCatapult(e) {
   sfx.whoosh();
+  const from = G && G.catapult != null && G.catapult !== e.tile ? boardView.tileScreen(G.catapult) : centerOf($(`#pl-${e.p} .pl-av`));
   const to = boardView.tileScreen(e.tile);
-  await flyBoulder(centerOf($(`#pl-${e.p} .pl-av`)), to);
+  await flyBoulder(from, to);
   sfx.boom();
   shake($('#stage'));
   burst(to, '#f6e8c8', 12);
@@ -298,11 +315,15 @@ function after(e, i) {
       sfx.build();
       burst(boardView.pieceScreen(e.kind, e.at), hexOf(e.p), e.kind === 'road' ? 6 : 12);
       break;
-    case 'steal':
+    case 'steal': {
       bubble($(`#pl-${e.from}`), '😱');
-      if (e.res && e.to === G.me) toast(`Você roubou ${ico(e.res)} de ${name(e.from)}`);
-      else if (e.res) toast(`${name(e.to)} roubou ${ico(e.res)} de você`, 'err');
+      const catAt = G && G.catapult != null ? boardView.tileScreen(G.catapult) : centerOf($(`#pl-${e.from} .pl-av`));
+      flyIcon(e.res || 'trick', catAt, centerOf($(`#pl-${e.to} .pl-av`)));
+      sfx.gain(0);
+      if (e.res && e.to === G.me) toast(`A catapulta lançou ${ico(e.res)} de ${name(e.from)} para você!`);
+      else if (e.res) toast(`A catapulta lançou ${ico(e.res)} de você para ${name(e.to)}`, 'err');
       break;
+    }
     case 'card':
       sfx.card();
       toast(`${avOf(e.p)} ${name(e.p)} usou ${ico(CARDS[e.card].icon)} ${CARDS[e.card].name}`, 'big');
@@ -341,7 +362,7 @@ function renderScreen() {
   for (const s of ['home', 'lobby', 'game']) $('#screen-' + s).classList.toggle('hidden', s !== which);
   if (which === 'lobby') renderLobby();
   if (which === 'game' && G) render();
-  else setHtml('modal', $('#modal-root'), which === 'lobby' && ui.modal === 'rules' ? rulesModal() : '');
+  else setHtml('modal', $('#modal-root'), ui.modal === 'rules' ? rulesModal() : '');
 }
 
 function setHtml(key, el, html) {
@@ -353,13 +374,21 @@ function setHtml(key, el, html) {
 
 function renderLobby() {
   const me = room.seats[room.you];
+  const curLevel = room.botLevel || getBotLevel();
   const seats = [0, 1, 2, 3]
     .map((i) => {
       const st = room.seats[i];
       if (!st) {
         return `<div class="seat empty">${room.host ? '<button class="btn small" data-act="add-bot">+ Bot</button>' : '<span class="tag">vaga livre</span>'}</div>`;
       }
-      const tag = st.host ? `${ico('crown', 's')}anfitrião` : st.bot ? `${ico('bot', 's')}bot` : i === room.you ? 'você' : '';
+      const bLv = st.bot ? (BOT_LEVEL_NAMES[st.botLevel || curLevel] || 'Médio').toLowerCase() : '';
+      const tag = st.host
+        ? `${ico('crown', 's')}anfitrião`
+        : st.bot
+          ? `${ico('bot', 's')}bot · ${bLv}`
+          : i === room.you
+            ? 'você'
+            : '';
       const kick = room.host && i !== room.you ? `<button class="x" data-act="kick" data-i="${i}" title="Remover" aria-label="Remover ${esc(st.name)}">${ico('close')}</button>` : '';
       return `<div class="seat" style="--c:${COLORS[st.color].hex}"><div class="seat-av">${avatar(st.color)}</div><div class="nm">${esc(st.name)}</div><div class="tag">${tag}</div>${kick}</div>`;
     })
@@ -368,6 +397,13 @@ function renderLobby() {
     const taken = room.seats.some((st, j) => st.color === i && j !== room.you);
     return `<button class="swatch ${me.color === i ? 'sel' : ''}" data-act="color" data-i="${i}" title="${c.name}" aria-label="${c.name}" ${taken ? 'disabled' : ''}>${avatar(i)}</button>`;
   }).join('');
+  const botCtrl = room.host
+    ? `<div class="bot-level-row"><span>${ico('bot', 's')}Nível dos bots</span><div class="seg-group compact" role="radiogroup" aria-label="Nível dos bots">${['easy', 'medium', 'hard']
+        .map((lv) => `<button type="button" class="seg-btn ${curLevel === lv ? 'on' : ''}" data-act="bot-level" data-level="${lv}">${BOT_LEVEL_NAMES[lv]}</button>`)
+        .join('')}</div></div>`
+    : room.seats.some((s) => s.bot)
+      ? `<div class="bot-level-row"><span class="tag">${ico('bot', 's')}Bots no nível <b>${BOT_LEVEL_NAMES[curLevel]}</b></span></div>`
+      : '';
   const start = room.host
     ? `<button class="btn big yellow" data-act="start" ${room.seats.length < 2 ? 'disabled' : ''}>Começar a partida</button>`
     : '<p>Aguardando o anfitrião começar…</p>';
@@ -376,8 +412,9 @@ function renderLobby() {
     'lobby',
     $('#lobby'),
     `<h2 class="lobby-title">Sala<span class="code">${room.code}</span></h2>
-     <div class="row"><button class="btn small" data-act="copy">${ico('link', 's')}Copiar convite</button><button class="btn small ghost" data-act="rules">Como joga</button></div>
+     <div class="row"><button class="btn small" data-act="copy">${ico('link', 's')}Copiar convite</button><button class="btn small ghost" data-act="rules">${ico('help', 's')}Como joga</button><button class="btn small ghost" data-act="about">${ico('info', 's')}Sobre e créditos</button></div>
      <div class="seats">${seats}</div>
+     ${botCtrl}
      <div class="sub-title">Quem você vai ser?</div>
      <div class="swatches">${swatches}</div>
      <p class="who">Você é ${COLORS[me.color].name}</p>
@@ -406,11 +443,15 @@ function targets() {
 }
 
 function onPick(kind, id) {
-  if (!G || G.turn !== G.me) return;
+  if (!G || G.turn !== G.me || ui.pending) return;
   sfx.click();
+  const mode = ui.mode;
+  ui.mode = null;
+  ui.pending = true; // esconde os alvos até o servidor responder
+  boardView.update(G, targets(), colorOf);
   if (kind === 'vertex') {
     if (G.sub === 'setupVillage') act({ type: 'placeVillage', v: id });
-    else if (ui.mode === 'castle') act({ type: 'buildCastle', v: id });
+    else if (mode === 'castle') act({ type: 'buildCastle', v: id });
     else act({ type: 'buildVillage', v: id });
   } else if (kind === 'edge') {
     if (G.sub === 'setupRoad') act({ type: 'placeRoad', e: id });
@@ -418,13 +459,11 @@ function onPick(kind, id) {
   } else if (kind === 'tile') {
     act({ type: 'moveCatapult', tile: id });
   }
-  ui.mode = null;
-  ui.pending = true; // esconde os alvos até o servidor responder
-  boardView.update(G, targets(), colorOf);
 }
 
 function render() {
   renderPlayers();
+  renderRank();
   renderBanner();
   renderHud();
   renderSide();
@@ -435,21 +474,26 @@ function render() {
 }
 
 function renderPlayers() {
+  const scores = G.players.map((p, idx) => (idx === G.me ? p.vpTotal ?? p.vp : p.vp));
+  const maxVp = Math.max(...scores);
   const html = G.players
     .map((p, i) => {
+      const vp = scores[i];
+      const isLead = maxVp > 0 && vp === maxVp;
       const badges =
+        (isLead ? `<span class="badge lead-badge">${ico('crown')}Na frente</span>` : '') +
         (G.awards.road === i ? `<span class="badge">${ico('road')}Maior Trilha</span>` : '') +
         (G.awards.army === i ? `<span class="badge">${ico('aim')}Rei da Catapulta</span>` : '');
-      const vp = p.vpTotal ?? p.vp;
       const bump = prevVp[i] !== undefined && vp > prevVp[i] ? ' bump' : '';
       prevVp[i] = vp;
-      const cls = ['pl', i === G.turn && G.phase !== 'ended' ? 'active' : '', p.connected ? '' : 'off'].join(' ');
-      const tag = i === G.me ? ' <small>você</small>' : p.bot ? ico('bot') : p.connected ? '' : ico('sleep');
+      const cls = ['pl', i === G.turn && G.phase !== 'ended' ? 'active' : '', isLead ? 'leader' : '', p.connected ? '' : 'off'].join(' ');
+      const botTag = p.bot ? `<span class="bot-tag" title="Bot (${BOT_LEVEL_NAMES[p.botLevel || 'medium']})">${ico('bot')}</span>` : '';
+      const tag = i === G.me ? ' <small>você</small>' : p.bot ? botTag : p.connected ? '' : ico('sleep');
       return `<div class="${cls}" id="pl-${i}" style="--c:${COLORS[p.color].hex}">
         <div class="pl-av">${avatar(p.color)}<span class="pl-lamp"></span></div>
         <div class="pl-info">
           <div class="pl-name">${esc(p.name)}${tag}</div>
-          <div class="pl-stats"><span class="st-vp" title="Pontos">${ico('star')}${vp}</span><span title="Recursos na mão">${ico('hand')}${p.handCount}</span><span title="Cartas de trapaça">${ico('trick')}${p.cardCount}</span><span title="Catapulteiros usados">${ico('aim')}${p.knights}</span><span title="Maior trilha contínua">${ico('road')}${p.roadLen}</span></div>
+          <div class="pl-stats"><span class="st-vp" title="Pontos">${ico(isLead ? 'crown' : 'star')}${vp}</span><span title="Recursos na mão">${ico('hand')}${p.handCount}</span><span title="Cartas de trapaça">${ico('trick')}${p.cardCount}</span><span title="Catapulteiros usados">${ico('aim')}${p.knights}</span><span title="Maior trilha contínua">${ico('road')}${p.roadLen}</span></div>
         </div>
         <div class="pl-vp${bump}" title="Pontos"><b>${vp}</b><i>/10</i></div>
         ${badges ? `<div class="pl-badges">${badges}</div>` : ''}
@@ -457,6 +501,25 @@ function renderPlayers() {
     })
     .join('');
   setHtml('players', $('#players'), html);
+}
+
+function renderRank() {
+  const el = $('#rank');
+  if (!el) return;
+  const list = G.players
+    .map((p, i) => ({ p, i, pts: i === G.me ? (p.vpTotal ?? p.vp) : p.vp }))
+    .sort((a, b) => b.pts - a.pts || (b.p.roadLen || 0) - (a.p.roadLen || 0) || (b.p.knights || 0) - (a.p.knights || 0) || a.i - b.i);
+  const topPts = list[0]?.pts || 0;
+  const html = list
+    .map(({ p, i, pts }, idx) => {
+      const lead = topPts > 0 && pts === topPts;
+      return `<div class="rk-chip${lead ? ' lead' : ''}" style="--c:${hexOf(i)}" title="${idx + 1}º ${esc(p.name)} — ${pts}/10 pts">
+        <span class="rk-pos">${idx + 1}º</span>
+        <span class="rk-av">${avOf(i)}</span>
+      </div>`;
+    })
+    .join('');
+  setHtml('rank', el, html);
 }
 
 function bannerText() {
@@ -576,11 +639,18 @@ function renderHud() {
 
 function renderSide() {
   setHtml('chip', $('#room-chip'), room ? `${room.code}${ico('link')}` : '');
+  const canTrade = G.turn === G.me && G.phase === 'main' && G.sub === 'action';
   setHtml(
     'bank',
     $('#bank'),
-    RES.map((r) => `<span title="${RES_NAME[r]} no banco">${ico(r)}${G.bank[r]}</span>`).join('') +
-      `<span title="Cartas de trapaça restantes">${ico('trick')}${G.deckCount}</span>`
+    `<div class="bank-head">
+       <span class="bank-title">${ico('stall', 's')}Banco da Quermesse</span>
+       ${canTrade ? `<button class="bank-btn" data-act="trade" title="Trocar com o banco ou jogadores">${ico('trade', 's')}Trocar</button>` : `<span class="bank-tag">Estoque</span>`}
+     </div>
+     <div class="bank-grid">
+       ${RES.map((r) => `<div class="bank-item" title="${RES_NAME[r]} disponível no banco">${ico(r)}<b>${G.bank[r]}</b><small>${RES_NAME[r]}</small></div>`).join('')}
+       <div class="bank-item trick-slot" title="Cartas de trapaça restantes no banco">${ico('trick')}<b>${G.deckCount}</b><small>trapaças</small></div>
+     </div>`
   );
   const last = G.log.length ? G.log[G.log.length - 1].id : 0;
   if (last !== lastLogId) {
@@ -735,24 +805,112 @@ function cardModal() {
 }
 
 function rulesModal() {
+  const tab = ui.rulesTab === 'about' ? 'about' : 'rules';
+  const tabs = `<div class="modal-tabs" role="tablist">
+    <button class="tab-btn ${tab === 'rules' ? 'on' : ''}" data-act="rules-tab" data-tab="rules" role="tab" aria-selected="${tab === 'rules'}">${ico('help', 's')}Como joga</button>
+    <button class="tab-btn ${tab === 'about' ? 'on' : ''}" data-act="rules-tab" data-tab="about" role="tab" aria-selected="${tab === 'about'}">${ico('info', 's')}Sobre e créditos</button>
+  </div>`;
+  if (tab === 'about') {
+    return modal(
+      'rules',
+      `${tabs}
+       <h2>Sobre e créditos</h2>
+       <div class="about-box">
+         <div class="about-card">
+           <div class="about-av">${avatar(0)}</div>
+           <div class="about-copy">
+             <b>Caio Nunes <small>@caionunespn</small></b>
+             <p>Programador que claramente não sabe ouvir um "duvido" quieto. Em vez de só responder no grupo, preferiu passar o fim de semana fazendo um jogo inteiro do zero.</p>
+           </div>
+         </div>
+         <div class="about-hero">
+           <div class="about-av">${avatar(2)}</div>
+           <div class="about-copy">
+             <span class="about-kicker">${ico('bolt', 's')}Por que esse jogo existe?</span>
+             <p>Eu fiz esse projeto <b>porque o Iuri duvidou que eu era muito poderoso</b>. Como discutir no gogó dá pouco trabalho, achei mais justo programar o tabuleiro, desenhar as peças, treinar os bots e botar uma catapulta pra tacar pedra nos amigos.</p>
+           </div>
+         </div>
+         <div class="rules-specials">
+           <div class="spec-card">${ico('bolt', 'l')}<div><b>Feito na unha</b><span>HTML, CSS e JavaScript puro, sem engine pronta nem biblioteca pesada.</span></div></div>
+           <div class="spec-card">${ico('c-knight', 'l')}<div><b>Som e desenho caseiros</b><span>Arte em SVG e efeitos sonoros sintetizados na hora pelo navegador.</span></div></div>
+           <div class="spec-card wide">${ico('crown', 'l')}<div><b>Agradecimento especial</b><span>Ao <b>Iuri</b>: se ele tivesse acreditado logo de cara, ninguém estaria tomando pedrada de catapulta agora.</span></div></div>
+         </div>
+       </div>
+       <div class="row"><button class="btn yellow" data-act="close">Fechar</button>${G ? '<button class="btn ghost small" data-act="leave">Sair da partida</button>' : ''}</div>`
+    );
+  }
   const myHex = G ? hexOf(G.me) : COLORS[0].hex;
-  const line = (icon, label, cost, what) => `<div class="line">${icon}<b>${label}</b>${costIcons(cost)}<span>${what}</span></div>`;
-  const note = (icon, text) => `<div class="note">${ico(icon)}<span>${text}</span></div>`;
+  const bCard = (icon, label, pts, cost, desc) =>
+    `<div class="build-card"><div class="bc-head">${icon}<div class="bc-title"><b>${label}</b>${pts ? `<span class="bc-pts">${pts}</span>` : ''}</div></div>${costIcons(cost)}<small>${desc}</small></div>`;
   return modal(
     'rules',
-    `<h2>Como joga</h2>
-     <div class="rules">
-       <div>Vence quem fizer <b>10 pontos</b> primeiro, na própria vez. A cada rolada, os terrenos com aquele número rendem recursos para quem mora nas pontas.</div>
-       ${line(ico('road'), 'Trilha', COSTS.road, 'liga suas construções')}
-       ${line(tinted('village', '', myHex), 'Vila', COSTS.village, '1 ponto, rende 1')}
-       ${line(tinted('castle', '', myHex), 'Castelo', COSTS.castle, '2 pontos, rende 2')}
-       ${line(ico('trick'), 'Trapaça', COSTS.card, 'carta surpresa')}
-       ${note('c-knight', '<b>Saiu 7:</b> quem tem mais de 7 cartas descarta metade. Você mira a <b>catapulta</b> num terreno, que para de render, e rouba uma carta de um vizinho.')}
-       ${note('crown', '<b>Maior Trilha</b> (5 ou mais) e <b>Rei da Catapulta</b> (3 ou mais Catapulteiros) valem 2 pontos cada.')}
-       ${note('stall', '<b>Portos</b> melhoram a troca com o banco: 3:1 ou 2:1 em vez de 4:1.')}
-       ${Object.values(CARDS).map((c) => `<div class="line wide">${ico(c.icon)}<b>${c.name}</b><span>${c.desc}</span></div>`).join('')}
+    `${tabs}
+     <h2>Como joga</h2>
+     <div class="rules-guide">
+       <div class="rules-goal">
+         ${ico('crown', 'l')}
+         <div>
+           <b>Objetivo: fazer 10 pontos primeiro!</b>
+           <span>No começo, cada um funda <b>2 vilas e 2 trilhas</b> de graça. Depois, quem alcançar 10 pontos na própria vez vence na hora.</span>
+         </div>
+       </div>
+
+       <h3 class="rules-sec">1. O seu turno em 3 passos</h3>
+       <div class="rules-steps">
+         <div class="step-card">
+           <span class="step-num">1</span>
+           ${ico('dice', 'l')}
+           <b>Role os dados</b>
+           <small>A soma sorteia os terrenos que produzem recursos para todos que têm vila (+1) ou castelo (+2) ali.</small>
+         </div>
+         <div class="step-card">
+           <span class="step-num">2</span>
+           ${ico('trade', 'l')}
+           <b>Negocie</b>
+           <small>Troque cartas com os outros jogadores ou direto no banco (4:1 normal, ou 3:1 e 2:1 se tiver porto).</small>
+         </div>
+         <div class="step-card">
+           <span class="step-num">3</span>
+           ${tinted('castle', 'l', myHex)}
+           <b>Construa</b>
+           <small>Use seus recursos para abrir trilhas, erguer vilas, castelos ou comprar e jogar 1 trapaça por turno.</small>
+         </div>
+       </div>
+
+       <h3 class="rules-sec">2. O que construir e quanto custa</h3>
+       <div class="rules-builds">
+         ${bCard(ico('road', 'l'), 'Trilha', '', COSTS.road, 'Abre caminho para fundar novas vilas.')}
+         ${bCard(tinted('village', 'l', myHex), 'Vila', '+1 pt', COSTS.village, 'Colhe 1 recurso de cada terreno vizinho.')}
+         ${bCard(tinted('castle', 'l', myHex), 'Castelo', '+2 pts', COSTS.castle, 'Melhora uma vila sua e colhe 2 recursos.')}
+         ${bCard(ico('trick', 'l'), 'Trapaça', 'Surpresa', COSTS.card, 'Compra 1 carta secreta do baralho.')}
+       </div>
+
+       <h3 class="rules-sec">3. O número 7 e as medalhas</h3>
+       <div class="rules-specials">
+         <div class="spec-card">
+           ${ico('c-knight', 'l')}
+           <div>
+             <b>Saiu 7: hora da Catapulta!</b>
+             <span>Quem tiver mais de 7 cartas na mão descarta metade. Você move a <b>Catapulta</b> para bloquear um terreno e ela arremessa 1 carta de quem mora lá para você.</span>
+           </div>
+         </div>
+         <div class="spec-card">
+           ${ico('crown', 'l')}
+           <div>
+             <b>Medalhas de +2 pontos</b>
+             <span><b>Maior Trilha</b> (5+ trilhas seguidas) e <b>Rei da Catapulta</b> (3+ Catapulteiros usados) valem <b>+2 pontos</b> cada, mas podem mudar de dono!</span>
+           </div>
+         </div>
+       </div>
+
+       <h3 class="rules-sec">4. Cartas de trapaça</h3>
+       <div class="rules-tricks">
+         ${Object.values(CARDS)
+           .map((c) => `<div class="trick-card">${ico(c.icon)}<div><b>${c.name}</b><span>${c.desc}</span></div></div>`)
+           .join('')}
+       </div>
      </div>
-     <div class="row"><button class="btn yellow" data-act="close">Entendi</button>${G ? '<button class="btn ghost small" data-act="leave">Sair da partida</button>' : ''}</div>`
+     <div class="row"><button class="btn yellow" data-act="close">Entendi, bora jogar!</button>${G ? '<button class="btn ghost small" data-act="leave">Sair da partida</button>' : ''}</div>`
   );
 }
 
@@ -815,7 +973,18 @@ const UI = {
     else toast(esc(u.href));
   },
   color: (el) => sendMsg({ t: 'color', color: Number(el.dataset.i) }),
-  'add-bot': () => sendMsg({ t: 'addBot' }),
+  'bot-level'(el) {
+    const lv = el.dataset.level;
+    if (!['easy', 'medium', 'hard'].includes(lv)) return;
+    saved.botLevel = lv;
+    save();
+    if (room && room.host && !room.inGame) {
+      room.botLevel = lv;
+      sendMsg({ t: 'botLevel', level: lv });
+      rerender();
+    }
+  },
+  'add-bot': () => sendMsg({ t: 'addBot', botLevel: room?.botLevel || getBotLevel() }),
   kick: (el) => sendMsg({ t: 'kick', i: Number(el.dataset.i) }),
   start: () => sendMsg({ t: 'start' }),
   leave() {
@@ -832,12 +1001,33 @@ const UI = {
     $('#btn-mute').innerHTML = ico(isMuted() ? 'mute' : 'sound');
   },
   rules() {
-    ui.modal = ui.modal === 'rules' ? null : 'rules';
+    if (ui.modal === 'rules' && ui.rulesTab === 'rules') ui.modal = null;
+    else {
+      ui.rulesTab = 'rules';
+      ui.modal = 'rules';
+    }
+    rerender();
+  },
+  about() {
+    if (ui.modal === 'rules' && ui.rulesTab === 'about') ui.modal = null;
+    else {
+      ui.rulesTab = 'about';
+      ui.modal = 'rules';
+    }
+    rerender();
+  },
+  'rules-tab'(el) {
+    ui.rulesTab = el.dataset.tab === 'about' ? 'about' : 'rules';
+    ui.modal = 'rules';
     rerender();
   },
   'toggle-log': () => $('#side').classList.toggle('open'),
   roll() {
-    if (G && G.turn === G.me && G.sub === 'roll') act({ type: 'roll' });
+    if (ui.pending || busy) return;
+    if (G && G.turn === G.me && G.sub === 'roll') {
+      ui.pending = true;
+      act({ type: 'roll' });
+    }
   },
   mode(el) {
     ui.mode = ui.mode === el.dataset.mode ? null : el.dataset.mode;
@@ -850,7 +1040,9 @@ const UI = {
     rerender();
   },
   end() {
+    if (ui.pending || busy) return;
     ui.mode = null;
+    ui.pending = true;
     act({ type: 'endTurn' });
   },
   card(el) {
@@ -902,6 +1094,9 @@ const UI = {
     $('#react').classList.remove('open');
   },
   'toggle-react': () => $('#react').classList.toggle('open'),
+  'zoom-in': () => boardView.zoomBy(1.22),
+  'zoom-out': () => boardView.zoomBy(1 / 1.22),
+  'zoom-reset': () => boardView.resetCam(),
   'show-end'() {
     ui.hideEnd = false;
     rerender();
@@ -928,6 +1123,11 @@ function readName() {
 
 document.addEventListener('click', (e) => {
   if (!e.target.closest('#react')) $('#react').classList.remove('open');
+  if (e.target === $('#modal-root') && ui.modal) {
+    ui.modal = null;
+    rerender();
+    return;
+  }
   const el = e.target.closest('[data-act]');
   if (!el || el.disabled) return;
   const h = UI[el.dataset.act];
@@ -966,11 +1166,48 @@ function buildGarland(el) {
   }
   el.innerHTML = html;
 }
+function buildAmbient(el) {
+  const colors = ['#f7b733', '#e5482f', '#1fae96', '#f6e8c8', '#3d7be0'];
+  const pts = [
+    [8, 78, 1.1, 0],
+    [16, 44, 0.85, 1],
+    [24, 84, 1.25, 2],
+    [35, 28, 0.75, 3],
+    [48, 88, 1.0, 4],
+    [62, 32, 0.9, 0],
+    [74, 82, 1.2, 1],
+    [84, 52, 0.8, 2],
+    [92, 76, 1.15, 3],
+    [12, 22, 0.7, 4],
+    [88, 24, 0.95, 0],
+    [54, 18, 0.8, 2],
+  ];
+  let svg = '<svg viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid slice">';
+  pts.forEach(([x, y, s, ci], idx) => {
+    const cx = x * 10;
+    const cy = y * 7;
+    const col = colors[ci];
+    const dur = (7 + (idx % 5) * 1.6).toFixed(1);
+    const delay = (-idx * 1.3).toFixed(1);
+    if (idx % 3 === 0) {
+      // balãozinho/lanterna de quermesse subindo suave
+      svg += `<g class="amb-float" style="animation-duration:${dur}s;animation-delay:${delay}s"><g transform="translate(${cx},${cy}) scale(${s})"><path d="M0-10 L8 0 L0 10 L-8 0 Z" fill="${col}" opacity=".22"/><circle cx="0" cy="0" r="3.2" fill="#fff8ea" opacity=".35"/></g></g>`;
+    } else {
+      // estrelinha / vagalume de luz quente
+      svg += `<g class="amb-float" style="animation-duration:${dur}s;animation-delay:${delay}s"><g transform="translate(${cx},${cy}) scale(${s})"><path d="M0-7 Q0 0 7 0 Q0 0 0 7 Q0 0 -7 0 Q0 0 0-7 Z" fill="${col}" opacity=".28"/></g></g>`;
+    }
+  });
+  svg += '</svg>';
+  el.innerHTML = svg;
+}
 document.querySelectorAll('.garland').forEach(buildGarland);
-$('#cast').innerHTML = COLORS.map((c, i) => `<span style="--i:${i}" title="${c.name}">${avatar(i)}</span>`).join('');
+document.querySelectorAll('.ambient').forEach(buildAmbient);
+$('#cast').innerHTML = COLORS.map((c, i) => `<span style="--i:${i}" title="${c.name}"><div class="cast-bob" style="--i:${i}">${avatar(i)}</div></span>`).join('');
 $('#emotes').innerHTML = EMOTES.map((e) => `<button data-act="emote" data-e="${e}">${e}</button>`).join('');
 $('#btn-mute').innerHTML = ico(isMuted() ? 'mute' : 'sound');
 document.querySelector('#corner [data-act="rules"]').innerHTML = ico('help');
+if ($('#btn-home-rules')) $('#btn-home-rules').innerHTML = `${ico('help', 's')}Como joga`;
+if ($('#btn-home-about')) $('#btn-home-about').innerHTML = `${ico('info', 's')}Sobre e créditos`;
 $('#btn-log').innerHTML = ico('log');
 $('#btn-log-close').innerHTML = ico('close');
 $('#btn-react').innerHTML = ico('smile');

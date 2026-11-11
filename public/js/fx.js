@@ -117,7 +117,7 @@ export function flyIcon(res, from, to, delay = 0) {
   const mid = { x: (from.x + to.x) / 2 + side, y: Math.min(from.y, to.y) - 50 - Math.random() * 40 };
   el.animate(
     [
-      { transform: tr(from, 'scale(.2)'), opacity: 0, easing: 'cubic-bezier(.2,1.5,.4,1)' },
+      { transform: tr(from, 'scale(.2)'), opacity: 0, easing: 'cubic-bezier(.22,1,.36,1)' },
       { transform: tr({ x: from.x, y: from.y - 22 }, 'scale(1.5)'), opacity: 1, offset: 0.22, easing: 'cubic-bezier(.5,0,.6,.4)' },
       { transform: tr(mid, 'scale(1.15) rotate(140deg)'), opacity: 1, offset: 0.62, easing: 'cubic-bezier(.3,.4,.3,1)' },
       { transform: tr(to, 'scale(.45) rotate(320deg)'), opacity: 0.1 },
@@ -128,14 +128,20 @@ export function flyIcon(res, from, to, delay = 0) {
 }
 
 const ROCK =
-  '<svg viewBox="-28 -28 56 56" width="56" height="56"><path d="M-20 12-17-10-3-22 13-18 22-3 17 16-5 20Z" fill="#6f7c8c" stroke="#14202b" stroke-width="3" stroke-linejoin="round"/>' +
-  '<path d="M-17-10-3-22 13-18 2-7Z" fill="#a9b6c6"/><path d="M2-7 6 9M-9 3l6 5" fill="none" stroke="#3b4654" stroke-width="2.4" stroke-linecap="round"/></svg>';
+  '<svg viewBox="-28 -28 56 56" width="56" height="56">' +
+  '<path d="M4 5-15-15" fill="none" stroke="#7a4a21" stroke-width="5.2" stroke-linecap="round"/>' +
+  '<circle cx="-17.5" cy="-19" r="5.2" fill="#8a98aa" stroke="#14202b" stroke-width="2"/>' +
+  '<rect x="-20" y="5" width="40" height="6.2" rx="2.4" fill="#8c562b" stroke="#14202b" stroke-width="2"/>' +
+  '<path d="M-11 7.5-1.5-11.5 8.5 7.5Z" fill="#a86b38" stroke="#14202b" stroke-width="2" stroke-linejoin="round"/>' +
+  '<rect x="-6" y="-13" width="9.5" height="4.8" rx="1.5" fill="#6f7c8c" stroke="#14202b" stroke-width="2"/>' +
+  '<circle cx="-10.5" cy="12" r="7.2" fill="#5c3616" stroke="#14202b" stroke-width="2"/><circle cx="-10.5" cy="12" r="2.2" fill="#f7b733" stroke="#14202b" stroke-width="1.3"/>' +
+  '<circle cx="11.5" cy="12" r="7.2" fill="#5c3616" stroke="#14202b" stroke-width="2"/><circle cx="11.5" cy="12" r="2.2" fill="#f7b733" stroke="#14202b" stroke-width="1.3"/></svg>';
 
 export function flyBoulder(from, to) {
   if (calm) return new Promise((r) => setTimeout(r, 150));
   return new Promise((resolve) => {
     const el = spawn('fly-rock', ROCK);
-    const apex = { x: (from.x + to.x) / 2, y: Math.min(from.y, to.y) - 200 };
+    const apex = { x: (from.x + to.x) / 2, y: Math.min(from.y, to.y) - 150 };
     // aba em segundo plano pausa as animações: o temporizador garante que a partida nunca trave esperando
     let landed = false;
     const land = () => {
@@ -152,11 +158,11 @@ export function flyBoulder(from, to) {
     };
     el.animate(
       [
-        { transform: tr(from, 'scale(.4) rotate(0)'), easing: 'cubic-bezier(.2,.7,.4,1)' },
-        { transform: tr(apex, 'scale(1.9) rotate(380deg)'), easing: 'cubic-bezier(.6,0,.9,.5)' },
-        { transform: tr(to, 'scale(.95) rotate(760deg)') },
+        { transform: tr(from, 'scale(.75) rotate(-14deg)'), easing: 'cubic-bezier(.2,.7,.4,1)' },
+        { transform: tr(apex, 'scale(1.55) rotate(12deg)'), easing: 'cubic-bezier(.6,0,.9,.5)' },
+        { transform: tr(to, 'scale(1) rotate(0deg)') },
       ],
-      { duration: 760 }
+      { duration: 720 }
     ).onfinish = land;
     setTimeout(land, 1000);
   });

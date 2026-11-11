@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://*.firebaseio.com https://*.firebasedatabase.app https://*.europe-west1.firebasedatabase.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' ws: wss: https://www.gstatic.com https://*.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app https://*.europe-west1.firebasedatabase.app wss://*.firebaseio.com wss://*.firebasedatabase.app wss://*.europe-west1.firebasedatabase.app; frame-src https://*.firebaseapp.com https://*.firebasedatabase.app https://*.europe-west1.firebasedatabase.app; object-src 'none'; base-uri 'self'">
   <title>Catapulta</title>
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-16 -16 32 32'><path d='M-13 9-10-6-1-13 9-10 14 0 11 10-3 12Z' fill='%236f7c8c' stroke='%2314202b' stroke-width='2.4' stroke-linejoin='round'/><path d='M-10-6-1-13 9-10 2-3Z' fill='%23a9b6c6'/></svg>">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-22 -22 44 44'><path d='M3 4-12-12' stroke='%237a4a21' stroke-width='4.5' stroke-linecap='round'/><circle cx='-14' cy='-14' r='4.2' fill='%238a98aa' stroke='%2314202b' stroke-width='2'/><rect x='-16' y='4' width='32' height='5.2' rx='2' fill='%238c562b' stroke='%2314202b' stroke-width='2'/><path d='M-9 6-1-9 7 6Z' fill='%23a86b38' stroke='%2314202b' stroke-width='2' stroke-linejoin='round'/><path d='M2-10l8-2-1.8 2.8 1.8 2.5-8-.8Z' fill='%23e5482f' stroke='%2314202b' stroke-width='1.4'/><circle cx='-8.5' cy='10' r='5.8' fill='%235c3616' stroke='%2314202b' stroke-width='2'/><circle cx='-8.5' cy='10' r='2' fill='%23f7b733'/><circle cx='9.5' cy='10' r='5.8' fill='%235c3616' stroke='%2314202b' stroke-width='2'/><circle cx='9.5' cy='10' r='2' fill='%23f7b733'/></svg>">
   <meta name="theme-color" content="#0e1a24">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -15,11 +15,12 @@
 <body>
   <!-- Tela inicial -->
   <section id="screen-home" class="screen">
+    <div class="ambient" data-kind="home" aria-hidden="true"></div>
     <div class="home">
       <div class="garland" data-bulbs="26"></div>
       <header class="marquee">
         <h1 class="logo">CATAPULTA</h1>
-        <p class="tagline">Funde vilas, troque queijo por pedra e <b>arremesse pedregulhos</b> nos amigos.</p>
+        <p class="tagline">Funde vilas, troque queijo por pedra e <b>arme a catapulta</b> para saquear os amigos.</p>
       </header>
       <div class="cast" id="cast" aria-hidden="true"></div>
       <div class="panel join-panel">
@@ -39,6 +40,10 @@
         </details>
         <p class="hint">2 a 4 jogadores. Bots preenchem as vagas.</p>
       </div>
+      <div class="home-links">
+        <button class="btn small ghost" data-act="rules" id="btn-home-rules">Como joga</button>
+        <button class="btn small ghost" data-act="about" id="btn-home-about">Sobre e créditos</button>
+      </div>
     </div>
   </section>
 
@@ -51,18 +56,27 @@
   <section id="screen-game" class="screen hidden">
     <header id="players"></header>
     <main id="stage">
+      <div class="ambient" data-kind="stage" aria-hidden="true"></div>
       <div class="garland" data-bulbs="22"></div>
       <div id="banner" role="status" aria-live="polite"></div>
+      <aside id="rank" aria-label="Classificação da partida"></aside>
       <div id="corner">
         <button class="chip-btn" data-act="mute" id="btn-mute" title="Som" aria-label="Som"></button>
-        <button class="chip-btn" data-act="rules" title="Regras e custos" aria-label="Regras e custos"></button>
+        <button class="chip-btn" data-act="rules" title="Sobre, regras e créditos" aria-label="Sobre, regras e créditos"></button>
         <button class="chip-btn only-compact" data-act="toggle-log" id="btn-log" title="Diário e banco" aria-label="Diário e banco"></button>
       </div>
       <svg id="board" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Tabuleiro"></svg>
       <div id="sum" aria-hidden="true"></div>
       <div id="react">
         <div id="emotes"></div>
-        <button class="chip-btn" data-act="toggle-react" id="btn-react" title="Reagir" aria-label="Reagir"></button>
+        <div class="stage-tools">
+          <button class="chip-btn" data-act="toggle-react" id="btn-react" title="Reagir" aria-label="Reagir"></button>
+          <div class="zoom-bar" id="zoom-ctrl">
+            <button class="zoom-btn" data-act="zoom-out" title="Afastar tabuleiro" aria-label="Afastar tabuleiro">−</button>
+            <button class="zoom-btn" data-act="zoom-in" title="Aproximar tabuleiro" aria-label="Aproximar tabuleiro">+</button>
+            <button class="zoom-btn hidden" data-act="zoom-reset" id="btn-zoom-reset" title="Centralizar tabuleiro" aria-label="Centralizar tabuleiro">⟲</button>
+          </div>
+        </div>
       </div>
       <button id="dice" data-act="roll" title="Rolar os dados" aria-label="Rolar os dados">
         <span class="die" id="die-a"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
