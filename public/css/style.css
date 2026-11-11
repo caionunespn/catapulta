@@ -712,24 +712,41 @@ input:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
   #offer { bottom: 50px; width: calc(100% - 12px); }
   #side { display: none; position: fixed; z-index: 18; inset: calc(56px + var(--sat)) 8px calc(12px + var(--sab)) 8px; padding: 12px; background: var(--night-2); border: 2px solid var(--ink); border-radius: 16px; box-shadow: 0 24px 60px rgba(0, 0, 0, .75); }
   #side.open { display: flex; animation: drop-in .35s var(--out) both; }
-  #hud { grid-template-columns: minmax(0, 1fr); gap: 4px; padding: 5px 7px; border-radius: 13px; }
+  #hud {
+    grid-template-columns: minmax(0, 1fr); gap: 5px;
+    padding: 13px 11px 13px; border-radius: 15px;
+    box-shadow: inset 0 0 0 3px var(--board), inset 0 0 0 4.5px var(--line), 0 -6px 22px rgba(0, 0, 0, .3);
+  }
+  #hud.mine {
+    box-shadow: inset 0 0 0 3px var(--board), inset 0 0 0 4.5px var(--yellow), 0 -8px 22px rgba(0, 0, 0, .45);
+  }
+  #hud .btn {
+    box-shadow: 0 2px 0 var(--edge), 0 2px 0 1.5px var(--ink), 0 5px 10px rgba(0, 0, 0, .28);
+  }
+  #hud .btn:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 var(--edge), 0 0 0 1.5px var(--ink), 0 2px 4px rgba(0, 0, 0, .28);
+  }
+  #hud .primary.idle {
+    box-shadow: inset 0 0 0 1.5px var(--line);
+  }
   .hand { justify-content: center; gap: clamp(4px, 1.6vw, 7px); }
-  .card { width: clamp(38px, 11.8vw, 48px); height: 42px; border-radius: 8px; padding-bottom: 2px; box-shadow: inset 0 -3px 0 var(--cream-2), 0 3px 7px rgba(0, 0, 0, .35); }
-  .card .ico.l { width: 22px; height: 22px; }
-  .card .n { min-width: 18px; height: 18px; font-size: 10.5px; line-height: 14px; right: -4px; top: -5px; padding: 0 4px; }
+  .card { width: clamp(38px, 11.6vw, 46px); height: 38px; border-radius: 8px; padding-bottom: 2px; box-shadow: inset 0 -2.5px 0 var(--cream-2), 0 3px 6px rgba(0, 0, 0, .35); }
+  .card .ico.l { width: 21px; height: 21px; }
+  .card .n { min-width: 17px; height: 17px; font-size: 10px; line-height: 13px; right: -4px; top: -4px; padding: 0 3.5px; }
   .tricks:not(.has-tricks), .tricks .me-vp { display: none; }
   .tricks { justify-content: center; gap: 4px; }
-  .trick { font-size: 12px; padding: 2px 6px 2px 3px; border-radius: 8px; }
-  .trick .ico { width: 17px; height: 17px; }
-  .trick .n { font-size: 11px; padding: 0 4px; }
-  .actions { flex-wrap: wrap; justify-content: center; gap: 4px; }
+  .trick { font-size: 11.5px; padding: 2px 6px 2px 3px; border-radius: 7px; }
+  .trick .ico { width: 16px; height: 16px; }
+  .trick .n { font-size: 10.5px; padding: 0 4px; }
+  .actions { flex-wrap: wrap; justify-content: center; gap: 5px; }
   .builds { flex: 1 1 100%; justify-content: center; gap: 4px; }
-  .act-btn { flex: 1 1 0; min-width: 0; overflow: hidden; padding: 3px 2px 3px; font-size: 11px; letter-spacing: .01em; border-radius: 8px; gap: 0; }
-  .act-btn .ico.l { width: 19px; height: 19px; }
+  .act-btn { flex: 1 1 0; min-width: 0; overflow: hidden; padding: 2.5px 2px 3px; font-size: 11px; letter-spacing: .01em; border-radius: 8px; gap: 0; }
+  .act-btn .ico.l { width: 18px; height: 18px; }
   .act-btn .cost { height: 11px; }
-  .cost .ico.s { width: 11px; height: 11px; flex: 0 1 11px; min-width: 6px; }
-  .primary { flex: 1 1 100%; min-height: 36px; font-size: 15px; padding: 6px 12px; border-radius: 10px; }
-  .primary .ico { width: 20px; height: 20px; }
+  .cost .ico.s { width: 10.5px; height: 10.5px; flex: 0 1 10.5px; min-width: 6px; }
+  .primary { flex: 1 1 100%; min-height: 33px; font-size: 14.5px; padding: 4px 12px; border-radius: 9px; }
+  .primary .ico { width: 19px; height: 19px; }
   .die { width: 38px; height: 38px; padding: 5px; border-radius: 9px; }
   .die i { width: 6px; height: 6px; }
   #modal-root { place-items: end center; padding: 10px 8px calc(8px + var(--sab)); }
@@ -756,12 +773,12 @@ input:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
   .chip-btn { width: 32px; height: 32px; padding: 5px; }
   #rank { top: 38px; }
   .garland .gl-seg:nth-child(n+4) { display: none; }
-  .card { width: clamp(36px, 11.2vw, 44px); height: 38px; }
-  .card .ico.l { width: 20px; height: 20px; }
-  .act-btn { font-size: 10.5px; padding: 2px 1px 3px; }
+  .card { width: clamp(36px, 11.2vw, 44px); height: 36px; }
+  .card .ico.l { width: 19px; height: 19px; }
+  .act-btn { font-size: 10.5px; padding: 2px 1px 2.5px; }
   .act-btn .ico.l { width: 17px; height: 17px; }
   .cost .ico.s { width: 10px; height: 10px; flex: 0 1 10px; min-width: 5.5px; }
-  .primary { min-height: 34px; font-size: 14px; padding: 5px 10px; }
+  .primary { min-height: 32px; font-size: 13.5px; padding: 4px 10px; }
   .stepper .pm button { width: 26px; height: 28px; font-size: 14px; }
   .steppers { gap: 4px; }
   .tab-btn { font-size: 13px; padding: 6px 8px; }
@@ -797,11 +814,28 @@ input:focus-visible { outline: 3px solid var(--yellow); outline-offset: 2px; }
   #zoom-ctrl { display: none; }
   #side { display: none; position: fixed; z-index: 18; inset: 8px 8px 8px auto; width: min(340px, 60vw); padding: 10px; background: var(--night-2); border: 2px solid var(--ink); border-radius: 16px; box-shadow: 0 24px 60px rgba(0, 0, 0, .75); }
   #side.open { display: flex; }
-  #hud { grid-template-columns: minmax(0, 1fr); align-content: start; gap: 5px; padding: 6px; overflow: hidden auto; min-height: 0; }
-  .hand { gap: 4px; justify-content: space-between; }
-  .card { width: 35px; height: 42px; border-radius: 7px; }
-  .card .ico.l { width: 21px; height: 21px; }
-  .card .n { min-width: 18px; height: 18px; font-size: 10.5px; line-height: 14px; right: -5px; top: -6px; }
+  #hud {
+    grid-template-columns: minmax(0, 1fr); align-content: start; gap: 5px;
+    padding: 13px 11px 13px; border-radius: 15px; overflow: hidden auto; min-height: 0;
+    box-shadow: inset 0 0 0 3px var(--board), inset 0 0 0 4.5px var(--line), 0 -6px 22px rgba(0, 0, 0, .3);
+  }
+  #hud.mine {
+    box-shadow: inset 0 0 0 3px var(--board), inset 0 0 0 4.5px var(--yellow), 0 -8px 22px rgba(0, 0, 0, .45);
+  }
+  #hud .btn {
+    box-shadow: 0 2px 0 var(--edge), 0 2px 0 1.5px var(--ink), 0 5px 10px rgba(0, 0, 0, .28);
+  }
+  #hud .btn:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 0 0 var(--edge), 0 0 0 1.5px var(--ink), 0 2px 4px rgba(0, 0, 0, .28);
+  }
+  #hud .primary.idle {
+    box-shadow: inset 0 0 0 1.5px var(--line);
+  }
+  .hand { gap: 4px; justify-content: space-between; padding: 0 2px; }
+  .card { width: 34px; height: 40px; border-radius: 7px; }
+  .card .ico.l { width: 20px; height: 20px; }
+  .card .n { min-width: 17px; height: 17px; font-size: 10px; line-height: 13px; right: -4px; top: -4px; padding: 0 3.5px; }
   .tricks:not(.has-tricks), .tricks .me-vp { display: none; }
   .tricks { justify-content: flex-start; gap: 4px; }
   .trick { font-size: 11.5px; padding: 2px 5px 2px 3px; }
