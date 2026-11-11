@@ -107,6 +107,9 @@ const ICONS = {
   check: `<circle r="12" fill="#43b06c" ${S}/><path d="M-6 0 -1.5 5 6-5" fill="none" stroke="${CREAM}" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>`,
   nope: `<circle r="12" fill="#e5482f" ${S}/><path d="M-5-5 5 5M5-5-5 5" fill="none" stroke="${CREAM}" stroke-width="3" stroke-linecap="round"/>`,
   wait: `<circle r="12" fill="${CREAM}" ${S}/><circle cx="-5" r="1.8" fill="${INK}"/><circle r="1.8" fill="${INK}"/><circle cx="5" r="1.8" fill="${INK}"/>`,
+  spin:
+    `<circle r="10" fill="none" stroke="currentColor" stroke-width="3.2" opacity=".28"/>` +
+    `<path d="M0-10A10 10 0 0 1 10 0" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round"/>`,
   sleep: `<path d="M-9-10h8l-8 9h8M2-2h7l-7 8h7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>`,
   medal: `<path d="M-6-13h12l-3 9h-6Z" fill="#e5482f" ${S}/><circle cy="3" r="8.5" fill="#f7b733" ${S}/><path d="M0-1.5 1.6 1.6 5 2 2.5 4.3 3.2 7.6 0 6-3.2 7.6-2.5 4.3-5 2-1.6 1.6Z" fill="${CREAM}"/>`,
   // peças (a cor vem de "color" do elemento que usa)

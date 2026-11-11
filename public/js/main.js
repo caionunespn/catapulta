@@ -69,8 +69,42 @@ let busy = false;
 let prevHand = null;
 let prevVp = [];
 let lastLogId = 0;
+let pendingTimer = null;
 const cache = {};
-const ui = { pending: false, mode: null, modal: null, rulesTab: 'rules', card: null, plenty: [], give: zero(), get: zero(), discard: zero(), hideEnd: false, lastModal: null };
+const ui = {
+  connecting: null,
+  lobbyBusy: null,
+  busyAct: null,
+  pending: false,
+  mode: null,
+  modal: null,
+  rulesTab: 'rules',
+  card: null,
+  plenty: [],
+  give: zero(),
+  get: zero(),
+  discard: zero(),
+  hideEnd: false,
+  lastModal: null,
+};
+
+function clearPending() {
+  clearTimeout(pendingTimer);
+  pendingTimer = null;
+  ui.pending = false;
+  ui.busyAct = null;
+  ui.lobbyBusy = null;
+}
+
+function armPendingTimer() {
+  clearTimeout(pendingTimer);
+  pendingTimer = setTimeout(() => {
+    if (ui.pending || ui.lobbyBusy) {
+      clearPending();
+      renderScreen();
+    }
+  }, 8000);
+}
 
 const boardView = new BoardView($('#board'), onPick, (cam) => {
   const rst = $('#btn-zoom-reset');
@@ -82,6 +116,8 @@ let fbConn = null;
 
 function connect(code) {
   clearTimeout(retry);
+  ui.connecting = code ? 'join' : 'create';
+  renderHome();
   if (fbConn) {
     fbConn.close();
     fbConn = null;
@@ -94,6 +130,10 @@ function connect(code) {
   if (USE_FIREBASE) {
     connectFirebase({ name: saved.name, code, key: saved.key, botLevel: getBotLevel() }, onMsg).then((conn) => {
       fbConn = conn;
+      if (!conn) {
+        ui.connecting = null;
+        renderHome();
+      }
     });
     return;
   }
@@ -108,6 +148,8 @@ function connect(code) {
       toast('Conexão caiu. Reconectando…', 'err');
       retry = setTimeout(() => connect(room.code), 1500);
     } else {
+      ui.connecting = null;
+      renderHome();
       toast('Não consegui falar com o servidor', 'err');
     }
   };
@@ -117,6 +159,14 @@ const sendMsg = (m) => {
   else if (ws && ws.readyState === 1) ws.send(JSON.stringify(m));
 };
 const act = (a) => sendMsg({ t: 'act', a });
+const sendAct = (a, tag = a.type) => {
+  if (ui.pending) return;
+  ui.pending = true;
+  ui.busyAct = tag;
+  armPendingTimer();
+  renderScreen();
+  act(a);
+};
 
 function setUrl(code) {
   const u = new URL(location.href);
@@ -146,7 +196,8 @@ function goHome() {
     ws = null;
   }
   setUrl(null);
-  ui.pending = false;
+  ui.connecting = null;
+  clearPending();
   ui.mode = null;
   ui.modal = null;
   renderScreen();
@@ -162,6 +213,8 @@ function onMsg(m) {
       break;
     case 'room':
       room = m;
+      ui.connecting = null;
+      ui.lobbyBusy = null;
       if (!m.inGame) {
         G = null;
         epoch++;
@@ -169,7 +222,7 @@ function onMsg(m) {
         prevHand = null;
         prevVp = [];
         lastLogId = 0;
-        ui.pending = false;
+        clearPending();
         ui.mode = null;
         ui.modal = null;
       }
@@ -188,16 +241,15 @@ function onMsg(m) {
     case 'err':
       toast(esc(m.m), 'err');
       sfx.err();
+      ui.connecting = null;
+      clearPending();
       if (m.needKey) {
         const box = $('#field-key');
         if (box) box.open = true;
         $('#in-key')?.focus();
       }
       if (m.fatal) goHome();
-      else if (ui.pending) {
-        ui.pending = false;
-        renderScreen();
-      }
+      else renderScreen();
       break;
   }
 }
@@ -228,7 +280,7 @@ async function applyGame(m) {
     }
   }
   G = m.s;
-  ui.pending = false;
+  clearPending();
   if (G.turn !== G.me || G.sub !== 'action') ui.mode = null;
   if (!G.discard[G.me]) ui.discard = zero();
   for (const e of evs) {
@@ -360,9 +412,30 @@ function after(e, i) {
 function renderScreen() {
   const which = !room ? 'home' : room.inGame ? 'game' : 'lobby';
   for (const s of ['home', 'lobby', 'game']) $('#screen-' + s).classList.toggle('hidden', s !== which);
+  if (which === 'home') renderHome();
   if (which === 'lobby') renderLobby();
   if (which === 'game' && G) render();
   else setHtml('modal', $('#modal-root'), ui.modal === 'rules' ? rulesModal() : '');
+}
+
+function renderHome() {
+  const c = ui.connecting;
+  const btnCreate = $('#btn-create');
+  const btnJoin = $('#btn-join');
+  if (btnCreate) {
+    btnCreate.disabled = Boolean(c);
+    btnCreate.classList.toggle('loading', c === 'create');
+    setHtml('btn-create', btnCreate, c === 'create' ? `${ico('spin', 's spin')}Criando sala…` : 'Criar sala');
+  }
+  if (btnJoin) {
+    btnJoin.disabled = Boolean(c);
+    btnJoin.classList.toggle('loading', c === 'join');
+    setHtml('btn-join', btnJoin, c === 'join' ? `${ico('spin', 's spin')}Entrando…` : 'Entrar');
+  }
+  for (const sel of ['#in-name', '#in-code', '#in-key']) {
+    const el = $(sel);
+    if (el) el.disabled = Boolean(c);
+  }
 }
 
 function setHtml(key, el, html) {
@@ -375,11 +448,19 @@ function setHtml(key, el, html) {
 function renderLobby() {
   const me = room.seats[room.you];
   const curLevel = room.botLevel || getBotLevel();
+  const lb = ui.lobbyBusy;
+  let firstEmpty = true;
   const seats = [0, 1, 2, 3]
     .map((i) => {
       const st = room.seats[i];
       if (!st) {
-        return `<div class="seat empty">${room.host ? '<button class="btn small" data-act="add-bot">+ Bot</button>' : '<span class="tag">vaga livre</span>'}</div>`;
+        if (!room.host) return '<div class="seat empty"><span class="tag">vaga livre</span></div>';
+        const isAddingHere = lb === 'add-bot' && firstEmpty;
+        firstEmpty = false;
+        const btn = isAddingHere
+          ? `<button class="btn small loading" data-act="add-bot" disabled>${ico('spin', 's spin')}Adicionando…</button>`
+          : `<button class="btn small" data-act="add-bot" ${lb ? 'disabled' : ''}>+ Bot</button>`;
+        return `<div class="seat empty">${btn}</div>`;
       }
       const bLv = st.bot ? (BOT_LEVEL_NAMES[st.botLevel || curLevel] || 'Médio').toLowerCase() : '';
       const tag = st.host
@@ -389,24 +470,29 @@ function renderLobby() {
           : i === room.you
             ? 'você'
             : '';
-      const kick = room.host && i !== room.you ? `<button class="x" data-act="kick" data-i="${i}" title="Remover" aria-label="Remover ${esc(st.name)}">${ico('close')}</button>` : '';
+      const kick =
+        room.host && i !== room.you
+          ? `<button class="x" data-act="kick" data-i="${i}" title="Remover" aria-label="Remover ${esc(st.name)}" ${lb ? 'disabled' : ''}>${ico('close')}</button>`
+          : '';
       return `<div class="seat" style="--c:${COLORS[st.color].hex}"><div class="seat-av">${avatar(st.color)}</div><div class="nm">${esc(st.name)}</div><div class="tag">${tag}</div>${kick}</div>`;
     })
     .join('');
   const swatches = COLORS.map((c, i) => {
     const taken = room.seats.some((st, j) => st.color === i && j !== room.you);
-    return `<button class="swatch ${me.color === i ? 'sel' : ''}" data-act="color" data-i="${i}" title="${c.name}" aria-label="${c.name}" ${taken ? 'disabled' : ''}>${avatar(i)}</button>`;
+    return `<button class="swatch ${me.color === i ? 'sel' : ''}" data-act="color" data-i="${i}" title="${c.name}" aria-label="${c.name}" ${taken || lb === 'start' ? 'disabled' : ''}>${avatar(i)}</button>`;
   }).join('');
   const botCtrl = room.host
     ? `<div class="bot-level-row"><span>${ico('bot', 's')}Nível dos bots</span><div class="seg-group compact" role="radiogroup" aria-label="Nível dos bots">${['easy', 'medium', 'hard']
-        .map((lv) => `<button type="button" class="seg-btn ${curLevel === lv ? 'on' : ''}" data-act="bot-level" data-level="${lv}">${BOT_LEVEL_NAMES[lv]}</button>`)
+        .map((lv) => `<button type="button" class="seg-btn ${curLevel === lv ? 'on' : ''}" data-act="bot-level" data-level="${lv}" ${lb === 'start' ? 'disabled' : ''}>${BOT_LEVEL_NAMES[lv]}</button>`)
         .join('')}</div></div>`
     : room.seats.some((s) => s.bot)
       ? `<div class="bot-level-row"><span class="tag">${ico('bot', 's')}Bots no nível <b>${BOT_LEVEL_NAMES[curLevel]}</b></span></div>`
       : '';
   const start = room.host
-    ? `<button class="btn big yellow" data-act="start" ${room.seats.length < 2 ? 'disabled' : ''}>Começar a partida</button>`
-    : '<p>Aguardando o anfitrião começar…</p>';
+    ? lb === 'start'
+      ? `<button class="btn big yellow loading" data-act="start" disabled>${ico('spin', 's spin')}Começando a partida…</button>`
+      : `<button class="btn big yellow" data-act="start" ${room.seats.length < 2 || lb ? 'disabled' : ''}>Começar a partida</button>`
+    : `<p>${ico('spin', 's spin')} Aguardando o anfitrião começar…</p>`;
   const need = room.host && room.seats.length < 2 ? '<p>Chame alguém ou adicione um bot para começar.</p>' : '';
   setHtml(
     'lobby',
@@ -448,7 +534,9 @@ function onPick(kind, id) {
   const mode = ui.mode;
   ui.mode = null;
   ui.pending = true; // esconde os alvos até o servidor responder
-  boardView.update(G, targets(), colorOf);
+  ui.busyAct = 'pick';
+  armPendingTimer();
+  render();
   if (kind === 'vertex') {
     if (G.sub === 'setupVillage') act({ type: 'placeVillage', v: id });
     else if (mode === 'castle') act({ type: 'buildCastle', v: id });
@@ -526,6 +614,17 @@ function bannerText() {
   const mine = G.turn === G.me;
   const name = esc(G.players[G.turn].name);
   if (G.phase === 'ended') return ['Fim de jogo', false];
+  if (ui.pending && ui.busyAct) {
+    const bMsg = {
+      roll: 'Rolando os dados…',
+      end: 'Passando a vez…',
+      buy: 'Comprando trapaça…',
+      pick: 'Confirmando no tabuleiro…',
+      card: 'Usando carta…',
+      discard: 'Enviando descarte…',
+    }[ui.busyAct];
+    if (bMsg) return [`${ico('spin', 's spin')} ${bMsg}`, true];
+  }
   if (G.discard[G.me]) return [`Descarte ${G.discard[G.me]} cartas`, true];
   if (G.sub === 'discard') return ['Aguardando os descartes…', false];
   if (mine) {
@@ -592,7 +691,7 @@ function renderHud() {
     .map((t) => {
       const c = CARDS[t];
       if (t === 'vp') return `<span class="trick vp" title="${c.desc}">${ico(c.icon)}${c.name}<span class="n">${counts[t]}</span></span>`;
-      return `<button class="trick" data-act="card" data-card="${t}" title="${c.desc}" ${playable(t) ? '' : 'disabled'}>${ico(c.icon)}${c.name}<span class="n">${counts[t]}</span></button>`;
+      return `<button class="trick" data-act="card" data-card="${t}" title="${c.desc}" ${playable(t) && !ui.pending ? '' : 'disabled'}>${ico(c.icon)}${c.name}<span class="n">${counts[t]}</span></button>`;
     })
     .join('');
 
@@ -603,15 +702,26 @@ function renderHud() {
   } else {
     const L = G.legal;
     const free = G.freeRoads > 0;
+    const canAct = acting && !ui.pending;
     const b = (mode, label, icon, cost, ok) =>
       `<button class="btn act-btn${ui.mode === mode ? ' on' : ''}" data-act="mode" data-mode="${mode}" ${ok ? '' : 'disabled'}>${icon}<span>${label}</span>${costIcons(cost, me.hand)}</button>`;
+    const buyBtn =
+      ui.busyAct === 'buy'
+        ? `<button class="btn act-btn loading" data-act="buy" disabled>${ico('spin', 'l spin')}<span>Comprando…</span>${costIcons(COSTS.card, me.hand)}</button>`
+        : `<button class="btn act-btn" data-act="buy" ${canAct && G.can.card ? '' : 'disabled'}>${ico('trick', 'l')}<span>Trapaça</span>${costIcons(COSTS.card, me.hand)}</button>`;
     builds =
-      b('road', 'Trilha', ico('road', 'l'), COSTS.road, acting && !free && G.can.road && L.roads.length) +
-      b('village', 'Vila', tinted('village', 'l', myHex), COSTS.village, acting && !free && G.can.village && L.villages.length) +
-      b('castle', 'Castelo', tinted('castle', 'l', myHex), COSTS.castle, acting && !free && G.can.castle && L.castles.length) +
-      `<button class="btn act-btn" data-act="buy" ${acting && G.can.card ? '' : 'disabled'}>${ico('trick', 'l')}<span>Trapaça</span>${costIcons(COSTS.card, me.hand)}</button>` +
-      `<button class="btn act-btn" data-act="trade" ${acting ? '' : 'disabled'}>${ico('trade', 'l')}<span>Trocar</span><span class="cost"></span></button>`;
-    if (myTurn && G.phase === 'main' && G.sub === 'roll') {
+      b('road', 'Trilha', ico('road', 'l'), COSTS.road, canAct && !free && G.can.road && L.roads.length) +
+      b('village', 'Vila', tinted('village', 'l', myHex), COSTS.village, canAct && !free && G.can.village && L.villages.length) +
+      b('castle', 'Castelo', tinted('castle', 'l', myHex), COSTS.castle, canAct && !free && G.can.castle && L.castles.length) +
+      buyBtn +
+      `<button class="btn act-btn" data-act="trade" ${canAct ? '' : 'disabled'}>${ico('trade', 'l')}<span>Trocar</span><span class="cost"></span></button>`;
+    if (ui.busyAct === 'roll') {
+      primary = `<button class="btn primary yellow loading" data-act="roll" disabled>${ico('spin', 's spin')}Rolando dados…</button>`;
+    } else if (ui.busyAct === 'end') {
+      primary = `<button class="btn primary red loading" data-act="end" disabled>${ico('spin', 's spin')}Passando a vez…</button>`;
+    } else if (ui.pending) {
+      primary = `<button class="btn primary idle loading" disabled>${ico('spin', 's spin')}Enviando…</button>`;
+    } else if (myTurn && G.phase === 'main' && G.sub === 'roll') {
       primary = `<button class="btn primary yellow pulse" data-act="roll">${ico('dice')}Rolar dados</button>`;
     } else if (acting) {
       primary = `<button class="btn primary red" data-act="end">Passar a vez${ico('next')}</button>`;
@@ -677,9 +787,11 @@ function renderOffer() {
     const mine = G.players[G.me].hand;
     const resp = t.responses[G.me];
     const can = RES.every((r) => mine[r] >= t.get[r]);
+    const yesLoad = ui.busyAct === 'trade-yes';
+    const noLoad = ui.busyAct === 'trade-no';
     const body = resp
       ? `<div class="offer-note">${resp === 'yes' ? `${ico('check')}Você topou. Aguardando…` : `${ico('nope')}Você recusou.`}</div>`
-      : `<div class="row"><button class="btn small green" data-act="trade-yes" ${can ? '' : 'disabled'}>${can ? 'Topo!' : 'Não tenho'}</button><button class="btn small red" data-act="trade-no">Nem pensar</button></div>`;
+      : `<div class="row"><button class="btn small green${yesLoad ? ' loading' : ''}" data-act="trade-yes" ${can && !ui.pending ? '' : 'disabled'}>${yesLoad ? `${ico('spin', 's spin')}Aceitando…` : can ? 'Topo!' : 'Não tenho'}</button><button class="btn small red${noLoad ? ' loading' : ''}" data-act="trade-no" ${!ui.pending ? '' : 'disabled'}>${noLoad ? `${ico('spin', 's spin')}Recusando…` : 'Nem pensar'}</button></div>`;
     html = `<div class="offer-card"><div class="offer-who">${avOf(t.from)}${esc(G.players[t.from].name)} propõe</div><div class="offer-line">dá ${resSet(t.give)} e quer ${resSet(t.get)}</div>${body}</div>`;
   }
   setHtml('offer', $('#offer'), html);
@@ -700,12 +812,13 @@ function discardModal() {
   const need = G.discard[G.me];
   const hand = G.players[G.me].hand;
   const n = sum(ui.discard);
+  const isLoad = ui.busyAct === 'discard';
   return modal(
     'discard',
     `${art('c-knight')}<h2>Saiu 7! Descarte ${need} cartas</h2>
      <p>Quem tem mais de 7 cartas perde metade.</p>
      <div class="steppers">${RES.map((r) => stepper('discard', r, ui.discard[r], n >= need ? ui.discard[r] : hand[r], `tem ${hand[r]}`)).join('')}</div>
-     <div class="row"><button class="btn yellow" data-act="discard-ok" ${n === need ? '' : 'disabled'}>Descartar ${n} de ${need}</button></div>`
+     <div class="row"><button class="btn yellow${isLoad ? ' loading' : ''}" data-act="discard-ok" ${n === need && !ui.pending ? '' : 'disabled'}>${isLoad ? `${ico('spin', 's spin')}Descartando…` : `Descartar ${n} de ${need}`}</button></div>`
   );
 }
 
@@ -714,7 +827,10 @@ function stealModal() {
     'steal',
     `<h2>Roubar de quem?</h2>
      <div class="pick-row">${G.stealFrom
-       .map((i) => `<button class="pick" data-act="steal" data-i="${i}">${avOf(i)}<b>${esc(G.players[i].name)}</b><small>${ico('hand', 's')}${G.players[i].handCount}</small></button>`)
+       .map((i) => {
+         const isLoad = ui.busyAct === `steal:${i}`;
+         return `<button class="pick" data-act="steal" data-i="${i}" ${ui.pending ? 'disabled' : ''}>${avOf(i)}<b>${isLoad ? `${ico('spin', 's spin')}Roubando…` : esc(G.players[i].name)}</b><small>${ico('hand', 's')}${G.players[i].handCount}</small></button>`;
+       })
        .join('')}</div>`
   );
 }
@@ -723,13 +839,15 @@ function tradeModal() {
   const me = G.players[G.me];
   const t = G.trade;
   if (t && t.from === G.me) {
+    const cancelLoad = ui.busyAct === 'trade-cancel';
     const rows = G.players
       .map((p, i) => {
         if (i === G.me) return '';
         const r = t.responses[i];
+        const confLoad = ui.busyAct === `trade-confirm:${i}`;
         const st =
           r === 'yes'
-            ? `<button class="btn small green" data-act="trade-confirm" data-i="${i}">Fechar negócio</button>`
+            ? `<button class="btn small green${confLoad ? ' loading' : ''}" data-act="trade-confirm" data-i="${i}" ${ui.pending ? 'disabled' : ''}>${confLoad ? `${ico('spin', 's spin')}Fechando…` : 'Fechar negócio'}</button>`
             : r === 'no'
               ? `<span class="st">${ico('nope', 's')}recusou</span>`
               : `<span class="st">${ico('wait', 's')}pensando…</span>`;
@@ -741,7 +859,7 @@ function tradeModal() {
       `<h2>Sua oferta</h2>
        <div class="offer-line">${resSet(t.give)}<span class="arrow">por</span>${resSet(t.get)}</div>
        ${rows}
-       <div class="row"><button class="btn small red" data-act="trade-cancel">Cancelar oferta</button><button class="btn small ghost" data-act="close">Esconder</button></div>`
+       <div class="row"><button class="btn small red${cancelLoad ? ' loading' : ''}" data-act="trade-cancel" ${ui.pending ? 'disabled' : ''}>${cancelLoad ? `${ico('spin', 's spin')}Cancelando…` : 'Cancelar oferta'}</button><button class="btn small ghost" data-act="close">Esconder</button></div>`
     );
   }
   let credits = 0;
@@ -755,6 +873,8 @@ function tradeModal() {
   const nGive = sum(ui.give);
   const bankOk = exact && credits > 0 && credits === nGet && RES.every((r) => G.bank[r] >= ui.get[r]);
   const offerOk = nGive > 0 && nGet > 0 && G.players.length > 1;
+  const bankLoad = ui.busyAct === 'trade-bank';
+  const offerLoad = ui.busyAct === 'trade-offer';
   const tip = !nGive
     ? 'Escolha o que você dá e o que quer receber.'
     : bankOk
@@ -771,8 +891,8 @@ function tradeModal() {
      <div class="steppers">${RES.map((r) => stepper('get', r, ui.get[r], 9, RES_NAME[r])).join('')}</div>
      <p class="hint">${tip}</p>
      <div class="row">
-       <button class="btn green" data-act="trade-bank" ${bankOk ? '' : 'disabled'}>${ico('stall')}Banco</button>
-       <button class="btn yellow" data-act="trade-offer" ${offerOk ? '' : 'disabled'}>${ico('trade')}Oferecer a todos</button>
+       <button class="btn green${bankLoad ? ' loading' : ''}" data-act="trade-bank" ${bankOk && !ui.pending ? '' : 'disabled'}>${bankLoad ? `${ico('spin', 's spin')}Trocando…` : `${ico('stall')}Banco`}</button>
+       <button class="btn yellow${offerLoad ? ' loading' : ''}" data-act="trade-offer" ${offerOk && !ui.pending ? '' : 'disabled'}>${offerLoad ? `${ico('spin', 's spin')}Enviando…` : `${ico('trade')}Oferecer a todos`}</button>
        <button class="btn ghost small" data-act="close">Fechar</button>
      </div>`
   );
@@ -791,17 +911,21 @@ function cardModal() {
     return modal(
       'card',
       `${head}<p>Escolhidos: ${picked}</p>
-       <div class="pick-row">${RES.map((r) => `<button class="pick" data-act="plenty-pick" data-res="${r}" ${G.bank[r] > 0 ? '' : 'disabled'}>${ico(r, 'l')}${RES_NAME[r]}</button>`).join('')}</div>
+       <div class="pick-row">${RES.map((r) => `<button class="pick" data-act="plenty-pick" data-res="${r}" ${G.bank[r] > 0 && !ui.pending ? '' : 'disabled'}>${ico(r, 'l')}${RES_NAME[r]}</button>`).join('')}</div>
        <div class="row">${cancel}</div>`
     );
   }
   if (ui.card === 'monopoly') {
     return modal(
       'card',
-      `${head}<div class="pick-row">${RES.map((r) => `<button class="pick" data-act="mono-pick" data-res="${r}">${ico(r, 'l')}${RES_NAME[r]}</button>`).join('')}</div><div class="row">${cancel}</div>`
+      `${head}<div class="pick-row">${RES.map((r) => `<button class="pick" data-act="mono-pick" data-res="${r}" ${!ui.pending ? '' : 'disabled'}>${ico(r, 'l')}${RES_NAME[r]}</button>`).join('')}</div><div class="row">${cancel}</div>`
     );
   }
-  return modal('card', `${head}<div class="row"><button class="btn yellow" data-act="card-play">Usar agora</button>${cancel}</div>`);
+  const playLoad = ui.busyAct === 'card';
+  return modal(
+    'card',
+    `${head}<div class="row"><button class="btn yellow${playLoad ? ' loading' : ''}" data-act="card-play" ${!ui.pending ? '' : 'disabled'}>${playLoad ? `${ico('spin', 's spin')}Usando…` : 'Usar agora'}</button>${cancel}</div>`
+  );
 }
 
 function rulesModal() {
@@ -917,6 +1041,7 @@ function rulesModal() {
 function endModal() {
   const rank = G.players.map((p, i) => ({ p, i })).sort((a, b) => b.p.vp - a.p.vp || (a.i === G.winner ? -1 : 1));
   const w = G.players[G.winner];
+  const againLoad = ui.busyAct === 'again';
   return modal(
     'end',
     `<div class="winner-av">${avatar(w.color)}</div>
@@ -925,7 +1050,11 @@ function endModal() {
        .map(({ p, i }, k) => `<div class="resp"><span class="who-cell">${k + 1}º ${avOf(i)}${esc(p.name)}</span><b>${p.vp} pts</b></div>`)
        .join('')}</div>
      <div class="row">
-       ${room && room.host ? '<button class="btn big yellow" data-act="again">Jogar de novo</button>' : '<p>Aguardando o anfitrião…</p>'}
+       ${
+         room && room.host
+           ? `<button class="btn big yellow${againLoad ? ' loading' : ''}" data-act="again" ${againLoad ? 'disabled' : ''}>${againLoad ? `${ico('spin', 's spin')}Preparando…` : 'Jogar de novo'}</button>`
+           : `<p>${ico('spin', 's spin')} Aguardando o anfitrião…</p>`
+       }
      </div>
      <div class="row"><button class="btn small" data-act="hide-end">Ver tabuleiro</button><button class="btn small ghost" data-act="leave">Sair</button></div>`
   );
@@ -954,11 +1083,11 @@ const rerender = () => renderScreen();
 
 const UI = {
   create() {
-    if (!readName()) return;
+    if (ui.connecting || !readName()) return;
     connect(null);
   },
   join() {
-    if (!readName()) return;
+    if (ui.connecting || !readName()) return;
     const code = $('#in-code').value.trim().toUpperCase();
     if (code.length !== 4) return toast('O código da sala tem 4 letras', 'err');
     connect(code);
@@ -972,7 +1101,10 @@ const UI = {
     if (navigator.clipboard) navigator.clipboard.writeText(u.href).then(done, () => toast(esc(u.href)));
     else toast(esc(u.href));
   },
-  color: (el) => sendMsg({ t: 'color', color: Number(el.dataset.i) }),
+  color(el) {
+    if (ui.lobbyBusy) return;
+    sendMsg({ t: 'color', color: Number(el.dataset.i) });
+  },
   'bot-level'(el) {
     const lv = el.dataset.level;
     if (!['easy', 'medium', 'hard'].includes(lv)) return;
@@ -984,9 +1116,27 @@ const UI = {
       rerender();
     }
   },
-  'add-bot': () => sendMsg({ t: 'addBot', botLevel: room?.botLevel || getBotLevel() }),
-  kick: (el) => sendMsg({ t: 'kick', i: Number(el.dataset.i) }),
-  start: () => sendMsg({ t: 'start' }),
+  'add-bot'() {
+    if (ui.lobbyBusy) return;
+    ui.lobbyBusy = 'add-bot';
+    armPendingTimer();
+    rerender();
+    sendMsg({ t: 'addBot', botLevel: room?.botLevel || getBotLevel() });
+  },
+  kick(el) {
+    if (ui.lobbyBusy) return;
+    ui.lobbyBusy = 'kick';
+    armPendingTimer();
+    rerender();
+    sendMsg({ t: 'kick', i: Number(el.dataset.i) });
+  },
+  start() {
+    if (ui.lobbyBusy) return;
+    ui.lobbyBusy = 'start';
+    armPendingTimer();
+    rerender();
+    sendMsg({ t: 'start' });
+  },
   leave() {
     if (G && G.phase !== 'ended') {
       const warn = room && room.host && USE_FIREBASE ? 'Você é o anfitrião: sair encerra a sala para todo mundo. Sair mesmo assim?' : 'Sair da partida? Um bot assume o seu lugar.';
@@ -995,7 +1145,14 @@ const UI = {
     sendMsg({ t: 'leave' });
     goHome();
   },
-  again: () => sendMsg({ t: 'again' }),
+  again() {
+    if (ui.pending) return;
+    ui.pending = true;
+    ui.busyAct = 'again';
+    armPendingTimer();
+    rerender();
+    sendMsg({ t: 'again' });
+  },
   mute() {
     setMuted(!isMuted());
     $('#btn-mute').innerHTML = ico(isMuted() ? 'mute' : 'sound');
@@ -1025,16 +1182,17 @@ const UI = {
   roll() {
     if (ui.pending || busy) return;
     if (G && G.turn === G.me && G.sub === 'roll') {
-      ui.pending = true;
-      act({ type: 'roll' });
+      sendAct({ type: 'roll' }, 'roll');
     }
   },
   mode(el) {
+    if (ui.pending) return;
     ui.mode = ui.mode === el.dataset.mode ? null : el.dataset.mode;
     rerender();
   },
-  buy: () => act({ type: 'buyCard' }),
+  buy: () => sendAct({ type: 'buyCard' }, 'buy'),
   trade() {
+    if (ui.pending) return;
     ui.modal = 'trade';
     ui.mode = null;
     rerender();
@@ -1042,34 +1200,37 @@ const UI = {
   end() {
     if (ui.pending || busy) return;
     ui.mode = null;
-    ui.pending = true;
-    act({ type: 'endTurn' });
+    sendAct({ type: 'endTurn' }, 'end');
   },
   card(el) {
+    if (ui.pending) return;
     ui.modal = 'card';
     ui.card = el.dataset.card;
     ui.plenty = [];
     rerender();
   },
   'card-play'() {
-    act({ type: 'playCard', card: ui.card });
+    if (ui.pending) return;
     ui.modal = null;
-    rerender();
+    sendAct({ type: 'playCard', card: ui.card }, 'card');
   },
   'plenty-pick'(el) {
+    if (ui.pending) return;
     ui.plenty.push(el.dataset.res);
     if (ui.plenty.length >= 2) {
-      act({ type: 'playCard', card: 'plenty', res: ui.plenty });
       ui.modal = null;
+      sendAct({ type: 'playCard', card: 'plenty', res: ui.plenty }, 'card');
+    } else {
+      rerender();
     }
-    rerender();
   },
   'mono-pick'(el) {
-    act({ type: 'playCard', card: 'monopoly', res: el.dataset.res });
+    if (ui.pending) return;
     ui.modal = null;
-    rerender();
+    sendAct({ type: 'playCard', card: 'monopoly', res: el.dataset.res }, 'card');
   },
   step(el) {
+    if (ui.pending) return;
     const { side, res } = el.dataset;
     const d = Number(el.dataset.d);
     ui[side][res] = Math.max(0, ui[side][res] + d);
@@ -1077,14 +1238,14 @@ const UI = {
     if (d > 0 && side === 'get') ui.give[res] = 0;
     rerender();
   },
-  'discard-ok': () => act({ type: 'discard', res: ui.discard }),
-  steal: (el) => act({ type: 'steal', target: Number(el.dataset.i) }),
-  'trade-bank': () => act({ type: 'bankTrade', give: ui.give, get: ui.get }),
-  'trade-offer': () => act({ type: 'offerTrade', give: ui.give, get: ui.get }),
-  'trade-cancel': () => act({ type: 'cancelTrade' }),
-  'trade-confirm': (el) => act({ type: 'confirmTrade', with: Number(el.dataset.i) }),
-  'trade-yes': () => act({ type: 'respondTrade', accept: true }),
-  'trade-no': () => act({ type: 'respondTrade', accept: false }),
+  'discard-ok': () => sendAct({ type: 'discard', res: ui.discard }, 'discard'),
+  steal: (el) => sendAct({ type: 'steal', target: Number(el.dataset.i) }, `steal:${el.dataset.i}`),
+  'trade-bank': () => sendAct({ type: 'bankTrade', give: ui.give, get: ui.get }, 'trade-bank'),
+  'trade-offer': () => sendAct({ type: 'offerTrade', give: ui.give, get: ui.get }, 'trade-offer'),
+  'trade-cancel': () => sendAct({ type: 'cancelTrade' }, 'trade-cancel'),
+  'trade-confirm': (el) => sendAct({ type: 'confirmTrade', with: Number(el.dataset.i) }, `trade-confirm:${el.dataset.i}`),
+  'trade-yes': () => sendAct({ type: 'respondTrade', accept: true }, 'trade-yes'),
+  'trade-no': () => sendAct({ type: 'respondTrade', accept: false }, 'trade-no'),
   close() {
     ui.modal = null;
     rerender();
