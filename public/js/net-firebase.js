@@ -10,6 +10,19 @@ const COLORS = 6;
 const BOT_NAMES = ['Zé Pedrada', 'Dona Abóbora', 'Tonho Queijo', 'Cristalina', 'Seu Barranco', 'Mari Trilha'];
 const EMOTES = ['😂', '😭', '😡', '😎', '🙏', '🎉', '👀', '🧀'];
 
+// O Realtime Database descarta null, objetos e listas vazios e transforma objetos de chave numérica em listas.
+// Por isso todo estado de jogo trafega como texto JSON: chega do outro lado exatamente como saiu.
+const pack = (v) => JSON.stringify(v);
+const unpack = (t) => {
+  try {
+    return JSON.parse(t);
+  } catch {
+    return null;
+  }
+};
+// Sala sem chave usa um marcador fixo (evita depender de texto vazio nas regras).
+const NO_KEY = '-';
+
 const cleanName = (n) => String(n || '').replace(/\s+/g, ' ').trim().slice(0, 14) || 'Jogador';
 
 function randomCode() {
@@ -25,13 +38,16 @@ let fbPromise = null;
 function initFirebase() {
   if (fbPromise) return fbPromise;
   fbPromise = (async () => {
-    const [{ initializeApp }, { getAuth, signInAnonymously }, dbMod] = await Promise.all([
+    const [{ initializeApp }, authMod, dbMod] = await Promise.all([
       import(`${FB_CDN}/firebase-app.js`),
       import(`${FB_CDN}/firebase-auth.js`),
       import(`${FB_CDN}/firebase-database.js`),
     ]);
     const app = initializeApp(FIREBASE_CONFIG);
-    const auth = getAuth(app);
+    // initializeAuth sem "popup resolver": o login anônimo não precisa dele, e getAuth() tentaria carregar
+    // apis.google.com, que a política de segurança da página bloqueia (erro no console a cada acesso).
+    const { initializeAuth, indexedDBLocalPersistence, browserLocalPersistence, signInAnonymously } = authMod;
+    const auth = initializeAuth(app, { persistence: [indexedDBLocalPersistence, browserLocalPersistence] });
     const cred = await signInAnonymously(auth);
     const db = dbMod.getDatabase(app);
     return { uid: cred.user.uid, db, dbMod };
@@ -54,8 +70,8 @@ export async function connectFirebase({ name, code, key }, onMsg) {
   }
 
   const { uid, db, dbMod } = ctx;
-  const { ref, get, set, update, remove, onValue, onDisconnect } = dbMod;
-  const secret = String(key || '').trim().slice(0, 64);
+  const { ref, get, set, update, remove, onValue, onDisconnect, serverTimestamp } = dbMod;
+  const secret = String(key || '').trim().slice(0, 64) || NO_KEY;
   let closed = false;
   const unsubs = [];
   let hostTimer = null;
@@ -137,8 +153,9 @@ export async function connectFirebase({ name, code, key }, onMsg) {
             lastEmote: 0,
             lastOffer: 0,
           }));
-          if (st.game) {
-            const g = st.game;
+          const savedGame = st.gameJson ? unpack(st.gameJson) : st.game;
+          if (savedGame) {
+            const g = savedGame;
             g.buildings = g.buildings || {};
             g.roads = g.roads || {};
             g.discard = g.discard || {};
@@ -152,6 +169,7 @@ export async function connectFirebase({ name, code, key }, onMsg) {
             if (g.trade) g.trade.responses = g.trade.responses || {};
             g.rnd = Math.random;
             room.game = g;
+            room.boardJson = pack(g.board);
             room.order = (st.orderUids || []).map((u) => room.seats.find((s) => s.uid === u)).filter(Boolean);
           }
         }
@@ -193,7 +211,7 @@ export async function connectFirebase({ name, code, key }, onMsg) {
         code: room.code,
         inGame: !!g,
         seats: seatsPub,
-        board: g ? g.board : null,
+        boardJson: g ? room.boardJson : null,
         seq: ++room.seq,
       };
       patch.hostState = {
@@ -206,7 +224,7 @@ export async function connectFirebase({ name, code, key }, onMsg) {
           goneAt: goneAt || 0,
         })),
         orderUids: room.order.map((s) => s.uid),
-        game: g ? { ...g, rnd: null, events: [] } : null,
+        gameJson: g ? pack({ ...g, rnd: null, events: [] }) : null,
       };
 
       if (g) {
@@ -215,14 +233,14 @@ export async function connectFirebase({ name, code, key }, onMsg) {
           const v = view(g, i);
           const ev = filterEvents(events, i);
           if (seat.uid === uid) {
-            const msg = { t: 'game', s: v, ev };
-            if (includeBoard) msg.board = g.board;
+            // cópia: a tela do anfitrião não pode apontar para o estado vivo do motor
+            const msg = unpack(pack({ t: 'game', s: v, ev }));
+            if (includeBoard) msg.board = unpack(room.boardJson);
             onMsg(msg);
           } else {
             patch[`views/${seat.uid}`] = {
               t: 'game',
-              s: v,
-              ev,
+              json: pack({ s: v, ev }),
               seq: room.seq,
             };
           }
@@ -397,6 +415,7 @@ export async function connectFirebase({ name, code, key }, onMsg) {
         room.game = createGame(
           room.order.map((s) => ({ name: s.name, color: s.color, avatar: s.color, bot: s.bot }))
         );
+        room.boardJson = pack(room.game.board);
         room.order.forEach((s, i) => (room.game.players[i].connected = s.bot || s.connected));
         flushHost(true);
         return;
@@ -441,19 +460,36 @@ export async function connectFirebase({ name, code, key }, onMsg) {
     };
 
     // Escuta mensagens dos convidados em /catapulta/rooms/{code}/inbox
+    // Cada convidado tem uma única "caixa": toda mudança de seq é uma mensagem nova.
+    // (Comparar por "maior que" fazia o anfitrião ignorar para sempre quem caía e voltava.)
     const lastSeenSeq = new Map();
+    let inboxPrimed = false;
     const unsubInbox = onValue(ref(db, `catapulta/rooms/${roomCode}/inbox`), (snap) => {
-      const val = snap.val();
-      if (!val) return;
+      const val = snap.val() || {};
       for (const [senderUid, payload] of Object.entries(val)) {
         if (!payload || typeof payload !== 'object') continue;
         const s = Number(payload.seq) || 0;
-        if (s <= (lastSeenSeq.get(senderUid) || 0)) continue;
+        if (lastSeenSeq.get(senderUid) === s) continue;
         lastSeenSeq.set(senderUid, s);
+        // ao (re)abrir a sala, o que já estava na caixa é antigo: só presença importa
+        if (!inboxPrimed && payload.t !== 'hello' && payload.t !== 'disconnect') continue;
         handlePlayerMsg(senderUid, payload);
       }
+      inboxPrimed = true;
     });
     unsubs.push(unsubInbox);
+
+    // Presença do anfitrião: se a conexão dele cair, os convidados ficam sabendo.
+    const hostOffRef = ref(db, `catapulta/rooms/${roomCode}/public/hostOff`);
+    let hostWasOnline = false;
+    unsubs.push(
+      onValue(ref(db, '.info/connected'), (snap) => {
+        if (closed || !snap.val()) return;
+        onDisconnect(hostOffRef).set(true).catch(() => {});
+        if (hostWasOnline) syncAll();
+        hostWasOnline = true;
+      })
+    );
 
     onMsg({ t: 'hello', token: uid, code: roomCode });
     flushHost(true);
@@ -474,23 +510,26 @@ export async function connectFirebase({ name, code, key }, onMsg) {
   }
 
   // ==================== MODO CONVIDADO ====================
-  let seq = Date.now();
+  let seq = 0;
   let hasBoard = false;
   let cachedBoard = null;
+  let lastGame = null;
   let lastViewSeq = 0;
   let lastEmoteId = 0;
+  let hostOffWarned = false;
 
   const inboxRef = ref(db, `catapulta/rooms/${roomCode}/inbox/${uid}`);
-  try {
-    await onDisconnect(inboxRef).set({ t: 'disconnect', key: secret, seq: 9_999_999_999_999 });
-  } catch {}
 
   const sendToHost = async (m) => {
     if (closed) return;
+    seq = Math.max(seq + 1, Date.now());
     try {
-      await set(inboxRef, { ...m, key: secret, seq: ++seq });
-    } catch {
-      onMsg({ t: 'err', m: 'Chave de convite inválida ou ausente', needKey: true, fatal: true });
+      await set(inboxRef, { ...m, key: secret, seq });
+    } catch (e) {
+      if (closed) return;
+      const denied = String((e && (e.code || e.message)) || '').toUpperCase().includes('PERMISSION');
+      if (denied) onMsg({ t: 'err', m: 'Chave de convite inválida ou ausente', needKey: true, fatal: true });
+      else onMsg({ t: 'err', m: 'Sem conexão com a sala. Tentando de novo…' });
     }
   };
 
@@ -502,8 +541,15 @@ export async function connectFirebase({ name, code, key }, onMsg) {
         onMsg({ t: 'err', m: 'O anfitrião encerrou a sala', fatal: true });
         return;
       }
-      if (pub.board) cachedBoard = pub.board;
-      else hasBoard = false;
+      if (pub.boardJson) cachedBoard = unpack(pub.boardJson);
+      else if (pub.board) cachedBoard = pub.board;
+      else {
+        cachedBoard = null;
+        hasBoard = false;
+        lastGame = null;
+      }
+      if (pub.hostOff && !hostOffWarned) onMsg({ t: 'err', m: 'O anfitrião caiu. Aguardando ele voltar…' });
+      hostOffWarned = !!pub.hostOff;
 
       if (pub.emote && pub.emote.id !== lastEmoteId) {
         if (lastEmoteId !== 0) onMsg({ t: 'emote', p: pub.emote.p, e: pub.emote.e });
@@ -522,6 +568,11 @@ export async function connectFirebase({ name, code, key }, onMsg) {
           seats: seatsList.map(({ uid: _, ...rest }) => rest),
         });
       }
+      // o estado do jogo pode chegar antes do tabuleiro: reenvia com ele assim que der
+      if (cachedBoard && !hasBoard && lastGame) {
+        hasBoard = true;
+        onMsg({ ...lastGame, ev: [], board: cachedBoard });
+      }
     })
   );
 
@@ -534,7 +585,10 @@ export async function connectFirebase({ name, code, key }, onMsg) {
       if (v.t === 'err') {
         onMsg({ t: 'err', m: v.m, fatal: !!v.fatal });
       } else if (v.t === 'game') {
-        const msg = { t: 'game', s: v.s, ev: v.ev || [] };
+        const data = v.json ? unpack(v.json) : { s: v.s, ev: v.ev };
+        if (!data || !data.s) return;
+        const msg = { t: 'game', s: data.s, ev: data.ev || [] };
+        lastGame = msg;
         if (!hasBoard && cachedBoard) {
           msg.board = cachedBoard;
           hasBoard = true;
@@ -545,7 +599,17 @@ export async function connectFirebase({ name, code, key }, onMsg) {
   );
 
   onMsg({ t: 'hello', token: uid, code: roomCode });
-  await sendToHost({ t: 'hello', name: cleanName(name) });
+  // A cada (re)conexão: rearma o aviso de queda e se apresenta de novo ao anfitrião.
+  // O aviso usa o relógio do servidor para nunca "valer mais" que as mensagens seguintes.
+  unsubs.push(
+    onValue(ref(db, '.info/connected'), async (snap) => {
+      if (closed || !snap.val()) return;
+      try {
+        await onDisconnect(inboxRef).set({ t: 'disconnect', key: secret, seq: serverTimestamp() });
+      } catch {}
+      await sendToHost({ t: 'hello', name: cleanName(name) });
+    })
+  );
 
   return {
     send(m) {
