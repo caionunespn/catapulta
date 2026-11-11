@@ -1,0 +1,15 @@
+{
+  "name": "catapulta",
+  "version": "0.1.0",
+  "description": "Party game multiplayer de hexágonos, recursos e catapultas (até 4 jogadores)",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "node server/index.js",
+    "start:private": "node server/index.js --key=auto",
+    "test": "node test/sim.js && node test/security.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

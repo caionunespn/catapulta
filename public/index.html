@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Catapulta</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🪨</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lilita+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Ícones compartilhados -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <defs>
+      <symbol id="i-wood" viewBox="-16 -16 32 32">
+        <rect x="-2.5" y="6" width="5" height="8" rx="1.5" fill="#8a5a2b" stroke="#2a1a3a" stroke-width="1.6"/>
+        <path d="M0-14 10 0H5l7 9h-24l7-9h-5Z" fill="#1f9d4d" stroke="#2a1a3a" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M0-10 4-4h-5Z" fill="#8ff0a4" opacity=".8"/>
+      </symbol>
+      <symbol id="i-stone" viewBox="-16 -16 32 32">
+        <path d="M-12 9-9-4-1-11l9 4 5 10-4 7Z" fill="#b9c3d4" stroke="#2a1a3a" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M-9-4-1-11l9 4-7 5Z" fill="#e6ebf4"/>
+        <path d="M1-2 4 9" stroke="#7b8598" stroke-width="1.5" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="i-cheese" viewBox="-16 -16 32 32">
+        <path d="M-13 8v-8L6-10l7 10v8Z" fill="#ffd23f" stroke="#2a1a3a" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M-13 0h26" stroke="#2a1a3a" stroke-width="1.5"/>
+        <path d="M-13 0 6-10l7 10Z" fill="#ffe680"/>
+        <circle cx="-6" cy="4" r="2.2" fill="#e8a317"/>
+        <circle cx="5" cy="4.5" r="1.7" fill="#e8a317"/>
+        <circle cx="3" cy="-4.5" r="1.5" fill="#e8a317"/>
+      </symbol>
+      <symbol id="i-pumpkin" viewBox="-16 -16 32 32">
+        <ellipse cx="-5.5" cy="3" rx="7" ry="9" fill="#ff7a1a" stroke="#2a1a3a" stroke-width="1.7"/>
+        <ellipse cx="5.5" cy="3" rx="7" ry="9" fill="#ff7a1a" stroke="#2a1a3a" stroke-width="1.7"/>
+        <ellipse cx="0" cy="3" rx="5.5" ry="9.6" fill="#ff9d3d" stroke="#2a1a3a" stroke-width="1.7"/>
+        <path d="M0-7q1-6 6-6" stroke="#2f9e44" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+      </symbol>
+      <symbol id="i-crystal" viewBox="-16 -16 32 32">
+        <path d="M-3 12-10-2l5-11 7 9Z" fill="#c9a8ff" stroke="#2a1a3a" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M1 12V-3l6-7 6 10-4 12Z" fill="#8f5bff" stroke="#2a1a3a" stroke-width="1.8" stroke-linejoin="round"/>
+        <path d="M-5-10v10M7-7v14" stroke="#f1e8ff" stroke-width="1.4" stroke-linecap="round" opacity=".8"/>
+      </symbol>
+      <symbol id="i-reed" viewBox="-16 -16 32 32">
+        <path d="M-4 14q-2-14 0-22M3 14q2-12 1-18" stroke="#3f7d3a" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+        <rect x="-6.5" y="-13" width="5" height="10" rx="2.5" fill="#7a4a21" stroke="#2a1a3a" stroke-width="1.4"/>
+        <rect x="1.5" y="-9" width="5" height="9" rx="2.5" fill="#7a4a21" stroke="#2a1a3a" stroke-width="1.4"/>
+      </symbol>
+    </defs>
+  </svg>
+
+  <!-- Tela inicial -->
+  <section id="screen-home" class="screen">
+    <div class="home-card">
+      <h1 class="logo" aria-label="Catapulta">
+        <span>C</span><span>A</span><span>T</span><span>A</span><span>P</span><span>U</span><span>L</span><span>T</span><span>A</span>
+      </h1>
+      <p class="tagline">Construa vilas, troque queijo por pedra e <b>arremesse pedregulhos</b> nos amigos.</p>
+      <label class="field">
+        <span>Seu nome</span>
+        <input id="in-name" maxlength="14" placeholder="Como te chamam?" autocomplete="off">
+      </label>
+      <label class="field" id="field-key">
+        <span>Chave da sala <small style="opacity:.65;font-weight:700">(opcional)</small></span>
+        <input id="in-key" maxlength="64" placeholder="Ex: senha123 (vai no link)" autocomplete="off">
+      </label>
+      <button class="btn big yellow" data-act="create">Criar sala</button>
+      <div class="join-row">
+        <input id="in-code" maxlength="4" placeholder="CÓDIGO" autocomplete="off">
+        <button class="btn blue" data-act="join">Entrar</button>
+      </div>
+      <p class="hint">2 a 4 jogadores · bots preenchem as vagas</p>
+    </div>
+  </section>
+
+  <!-- Sala de espera -->
+  <section id="screen-lobby" class="screen hidden">
+    <div class="lobby-card" id="lobby"></div>
+  </section>
+
+  <!-- Partida -->
+  <section id="screen-game" class="screen hidden">
+    <aside id="players"></aside>
+    <main id="stage">
+      <div id="banner"></div>
+      <div id="corner">
+        <button class="chip-btn" data-act="mute" id="btn-mute" title="Som">🔊</button>
+        <button class="chip-btn" data-act="rules" title="Regras e custos">❓</button>
+        <button class="chip-btn only-mobile" data-act="toggle-log" title="Diário">📜</button>
+      </div>
+      <svg id="board" preserveAspectRatio="xMidYMid meet"></svg>
+      <div id="emotes"></div>
+      <button id="dice" data-act="roll" title="Rolar os dados">
+        <span class="die" id="die-a"></span><span class="die" id="die-b"></span>
+        <span class="dice-label">ROLAR!</span>
+      </button>
+      <div id="offer"></div>
+    </main>
+    <aside id="side">
+      <div class="side-head">
+        <span class="mini-logo">CATAPULTA</span>
+        <span class="room-chip" id="room-chip"></span>
+      </div>
+      <div id="bank"></div>
+      <div id="log"></div>
+    </aside>
+    <footer id="hud"></footer>
+  </section>
+
+  <div id="modal-root"></div>
+  <div id="fx"></div>
+  <div id="toasts"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
