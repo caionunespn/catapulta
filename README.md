@@ -25,13 +25,13 @@ npm run start:private
 node server/index.js --key=minhasenha
 ```
 
-## Deploy Gratuito (Vercel + Firebase Realtime Database)
+## Deploy Gratuito (GitHub Pages + Firebase Realtime Database)
 
 1. No [Console do Firebase](https://console.firebase.google.com/) (plano **Spark** gratuito):
    - Ative **Authentication** → *Sign-in method* → **Anônimo** (*Anonymous*).
    - Crie um **Realtime Database** e, na aba **Regras** (*Rules*), cole o conteúdo de [`database.rules.json`](database.rules.json) e clique em **Publicar**.
-2. Em *Configurações do Projeto* → *Seus aplicativos* (Web), copie os 4 campos (`apiKey`, `authDomain`, `databaseURL`, `projectId`) para [`public/js/firebase-config.js`](public/js/firebase-config.js).
-3. Suba no GitHub e importe o repositório na **Vercel** (o [`vercel.json`](vercel.json) já está configurado com `outputDirectory: "public"` e cabeçalhos de segurança CSP).
+2. Em *Configurações do Projeto* → *Seus aplicativos* (Web), copie os campos (`apiKey`, `authDomain`, `databaseURL`, `projectId`) para [`public/js/firebase-config.js`](public/js/firebase-config.js).
+3. Qualquer *push* na branch `main` publica automaticamente a pasta `public/` no **GitHub Pages** via [`.github/workflows/pages.yml`](.github/workflows/pages.yml).
 
 ## Testes
 

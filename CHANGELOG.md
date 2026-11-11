@@ -45,8 +45,8 @@ Todas as mudanças relevantes deste projeto são documentadas neste arquivo para
   - Tudo isolado sob `/catapulta/rooms/$code` para não colidir com outras coleções do projeto Firebase.
   - Nó `/catapulta/rooms/$code/secret` com `.read: false` (ninguém consegue ler a senha da sala), mas validado pelo servidor do Firebase na entrada de mensagens (`newData.child('key').val() === root.child('catapulta/rooms').child($code).child('secret').val()`).
   - Isolamento por `auth.uid`: cada jogador só pode ler `/views/$uid` e escrever em `/inbox/$uid`; apenas o `hostUid` pode escrever em `/public`, `/views/*` e `/hostState`.
-- **Deploy na Vercel (`vercel.json`) e Cliente (`public/`)**:
-  - Criado `vercel.json` servindo `public/` com todos os cabeçalhos de segurança e CSP compatível com Google Fonts e Firebase SDK.
+- **Deploy no GitHub Pages (`.github/workflows/pages.yml`) e Cliente (`public/`)**:
+  - Criado workflow `.github/workflows/pages.yml` publicando `public/` automaticamente no GitHub Pages (`https://caionunespn.github.io/catapulta/`), com `<meta http-equiv="Content-Security-Policy">` embutido em `public/index.html`.
   - Adicionado campo opcional **Chave da sala** na tela inicial (`public/index.html` e `public/js/main.js`), que é anexado automaticamente como `?sala=XXXX&chave=YYYY` ao clicar em **🔗 Copiar link de convite**.
 
 ### Testes
