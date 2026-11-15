@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'self'">
+  <title>Sol &amp; Lua — Quebra-Cabeça Lógico | Catapulta Online</title>
+  <meta name="description" content="Preencha a grade 6x6 com Sol e Lua seguindo as pistas de = e × sem repetir 3 seguidos. Quebra-cabeça lógico com 4 níveis de dificuldade.">
+  <link rel="canonical" href="https://catapulta.online/sol-e-lua">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Catapulta Online">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:url" content="https://catapulta.online/sol-e-lua">
+  <meta property="og:title" content="Sol &amp; Lua — Quebra-Cabeça Lógico">
+  <meta property="og:description" content="Equilibre Sol e Lua na grade 6x6 usando pura dedução lógica em 4 níveis de dificuldade.">
+  <meta property="og:image" content="https://catapulta.online/og.png">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-16 -16 32 32'><circle r='12' fill='%23f7b733' stroke='%2314202b' stroke-width='2.2'/><path d='M2-8A8 8 0 1 0 8 4 6.5 6.5 0 0 1 2-8Z' fill='%233d7be0' stroke='%2314202b' stroke-width='1.8'/></svg>">
+  <meta name="theme-color" content="#0e1a24">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Barlow+Condensed:wght@600;700&family=Bungee&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/sol-e-lua.css">
+</head>
+<body>
+  <section id="screen-sol-lua" class="screen sl-screen">
+    <div class="ambient" data-kind="home" aria-hidden="true"></div>
+    <div class="garland" data-bulbs="26"></div>
+
+    <div class="sl-wrap">
+      <!-- Topo: navegação, título e controles de som -->
+      <header class="sl-topbar">
+        <a class="btn small ghost sl-back" href="/" id="btn-back">← Mini-jogos</a>
+        <div class="sl-title-group">
+          <h1 class="sl-logo">SOL &amp; LUA</h1>
+          <span class="sl-sub">Lógica na Quermesse</span>
+        </div>
+        <div class="sl-top-actions">
+          <button class="chip-btn" data-act="mute" id="btn-mute" title="Som" aria-label="Som"></button>
+          <button class="chip-btn" data-act="rules" id="btn-rules" title="Sobre, regras e créditos" aria-label="Sobre, regras e créditos"></button>
+        </div>
+      </header>
+
+      <!-- Barra de nível (4 dificuldades) + cronômetro + novo tabuleiro -->
+      <section class="panel sl-controls" aria-label="Dificuldade e partida">
+        <div class="sl-levels" role="radiogroup" aria-label="Nível de dificuldade" id="level-bar">
+          <button type="button" class="seg-btn" data-act="level" data-level="easy">Fácil</button>
+          <button type="button" class="seg-btn on" data-act="level" data-level="medium">Médio</button>
+          <button type="button" class="seg-btn" data-act="level" data-level="hard">Difícil</button>
+          <button type="button" class="seg-btn" data-act="level" data-level="expert">Mestre</button>
+        </div>
+        <div class="sl-meta-row">
+          <div class="sl-stats">
+            <span class="sl-stat" title="Tempo da partida"><b id="sl-timer">00:00</b></span>
+            <span class="sl-stat" id="sl-progress" title="Casas preenchidas">0/36</span>
+            <span class="sl-stat" id="sl-errors" title="Erros cometidos">Erros: <b>0</b></span>
+          </div>
+          <button type="button" class="btn small yellow" data-act="new-game" id="btn-new-game">Novo tabuleiro</button>
+        </div>
+      </section>
+
+      <!-- Tabuleiro 6x6 e barra de dica/status -->
+      <main class="panel sl-board-panel">
+        <div class="sl-status-bar" id="sl-status" role="status" aria-live="polite">
+          Toque numa casa para alternar entre <b>Sol</b> e <b>Lua</b>.
+        </div>
+
+        <div class="sl-stage">
+          <div class="sl-grid" id="sl-grid" role="grid" aria-label="Tabuleiro 6 por 6"></div>
+          <div class="sl-signs" id="sl-signs" aria-hidden="true"></div>
+        </div>
+
+        <div class="sl-action-bar">
+          <button type="button" class="btn sl-act-btn" data-act="undo" id="btn-undo" disabled>Desfazer</button>
+          <button type="button" class="btn sl-act-btn ghost" data-act="clear" id="btn-clear" disabled>Limpar</button>
+          <button type="button" class="btn yellow sl-act-btn" data-act="hint" id="btn-hint">Dica</button>
+        </div>
+      </main>
+
+      <div class="home-links">
+        <button type="button" class="btn small ghost" data-act="rules" id="btn-bottom-rules">Como joga</button>
+        <button type="button" class="btn small ghost" data-act="about" id="btn-bottom-about">Sobre e créditos</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="modal-root"></div>
+  <div id="fx"></div>
+  <div id="toasts" role="status" aria-live="polite"></div>
+
+  <script type="module" src="/sol-e-lua/js/main.js"></script>
+</body>
+</html>

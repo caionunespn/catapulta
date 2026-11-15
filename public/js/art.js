@@ -79,7 +79,11 @@ const ICONS = {
     `<path d="M-9 12C-12 2 9 4 6-4 4-9-1-9-3-13" fill="none" stroke="#d9a65a" stroke-width="5.4" stroke-linecap="round"/>` +
     `<path d="M-9 12C-12 2 9 4 6-4 4-9-1-9-3-13" fill="none" stroke="${CREAM}" stroke-width="1.2" stroke-dasharray="2.5 3.5"/>`,
   star: `<path d="M0-12 3.5-4 12-3.5 5.5 2 7.5 11 0 6.2-7.5 11-5.5 2-12-3.5-3.5-4Z" fill="#f7b733" ${S}/>`,
-  crown: `<path d="M-11 8-12-6-5 0 0-10 5 0 12-6 11 8Z" fill="#f7b733" ${S}/><circle cy="3" r="2.2" fill="#e5482f" ${S}/>`,
+  crown:
+    `<path d="M-10.5 6.5-12-5.5-5-.5 0-9.5 5-.5 12-5.5 10.5 6.5Z" fill="#f7b733" ${S}/>` +
+    `<rect x="-10.5" y="6.5" width="21" height="3.6" rx="1.4" fill="#d98218" ${S}/>` +
+    `<circle cx="-12" cy="-6.8" r="1.9" fill="#f7b733" ${S}/><circle cx="0" cy="-10.8" r="2.2" fill="#f7b733" ${S}/><circle cx="12" cy="-6.8" r="1.9" fill="#f7b733" ${S}/>` +
+    `<circle cy="2.2" r="2.1" fill="#e5482f" ${S}/>`,
   bot:
     `<path d="M0-7v-5" ${L}/><circle cy="-12.5" r="2.1" fill="#e5482f" ${S}/>` +
     `<rect x="-10" y="-7" width="20" height="16" rx="4" fill="#9fb0c4" ${S}/><circle cx="-4" cy="0" r="2.2" fill="${INK}"/><circle cx="4" cy="0" r="2.2" fill="${INK}"/><path d="M-4 5h8" ${L}/>`,
@@ -148,6 +152,26 @@ const ICONS = {
   'c-gale':
     `<path d="M-12-5h14a4 4 0 1 0-4-4M-12 1h20a4.500 4.500 0 1 1-4.500 4.500M-12 7h8" fill="none" stroke="${INK}" stroke-width="5.2" stroke-linecap="round"/>` +
     `<path d="M-12-5h14a4 4 0 1 0-4-4M-12 1h20a4.500 4.500 0 1 1-4.500 4.500M-12 7h8" fill="none" stroke="#8fe0d6" stroke-width="2.4" stroke-linecap="round"/>`,
+  // quebra-cabeça Sol & Lua
+  sun:
+    `<path d="M0-14.2 3.2-10.2 8.2-12 7.8-6.8 12.8-5.2 10.2-.5 13.5 3.6 9.2 6.6 10 11.8 4.8 11.4 2 15.6-2 11.8-6.8 14-8 8.8-13.2 8-11 3.2-14.2-1-9.8-4.2-10.8-9.4-5.6-9-3.2-13.5Z" fill="#e5482f" ${S}/>` +
+    `<circle r="9.6" fill="#f7b733" ${S}/>` +
+    `<circle r="7.2" fill="none" stroke="#d98218" stroke-width="1.2" opacity=".55"/>` +
+    `<path d="M-5.2-4.2A6.5 6.5 0 0 1 2.5-6.2" fill="none" stroke="#fff8ea" stroke-width="2.1" stroke-linecap="round"/>`,
+  moon:
+    `<path d="M3.2-12A11.8 11.8 0 1 0 12.5 6.4 9.2 9.2 0 0 1 3.2-12Z" fill="#3d7be0" ${S}/>` +
+    `<path d="M-5.5-5.5A8.2 8.2 0 0 0 -4.2 6.8" fill="none" stroke="#9ec5ff" stroke-width="2.2" stroke-linecap="round"/>` +
+    `<circle cx="-3" cy="2" r="1.4" fill="#2452a8" opacity=".6"/><circle cx="1.5" cy="6.8" r="1.1" fill="#2452a8" opacity=".6"/>`,
+  undo:
+    `<path d="M-11.5-2.5 -3.5-9.5v4.5h5.5a8.5 8.5 0 1 1 0 17h-7v-4.6h7a3.9 3.9 0 1 0 0-7.8h-5.5V4.2Z" fill="${CREAM}" ${S}/>`,
+  bulb:
+    `<path d="M0-13a9 9 0 0 1 6.4 15.3c-1.2 1.2-2 2.5-2.2 4.2h-8.4c-.2-1.7-1-3-2.2-4.2A9 9 0 0 1 0-13Z" fill="#f7b733" ${S}/>` +
+    `<rect x="-4" y="6.5" width="8" height="3.4" rx="1.2" fill="#9fb0c4" ${S}/><path d="M-2.4 10h4.8l-1 2.6h-2.8Z" fill="${INK}"/>` +
+    `<path d="M-4.4-7.4A5.5 5.5 0 0 1 .2-10" fill="none" stroke="#fff8ea" stroke-width="1.9" stroke-linecap="round"/>`,
+  reset:
+    `<path d="M-9.5-2.5A10 10 0 1 1 -2.5 9.8" fill="none" stroke="${INK}" stroke-width="6.4" stroke-linecap="round"/>` +
+    `<path d="M-9.5-2.5A10 10 0 1 1 -2.5 9.8" fill="none" stroke="${CREAM}" stroke-width="3.2" stroke-linecap="round"/>` +
+    `<path d="M-13.5-.5 -11-9.5 -3.5-4.5Z" fill="#f7b733" ${S}/>`,
 };
 
 export function installSprite() {

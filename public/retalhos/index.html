@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'self'">
+  <title>Retalhos — Quebra-Cabeça Lógico | Catapulta Online</title>
+  <meta name="description" content="Complete cada forma (quadrado, retângulo horizontal, vertical ou livre) para preencher toda a grade na pura dedução lógica.">
+  <link rel="canonical" href="https://catapulta.online/retalhos">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Catapulta Online">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:url" content="https://catapulta.online/retalhos">
+  <meta property="og:title" content="Retalhos — Quebra-Cabeça Lógico">
+  <meta property="og:description" content="Expanda cada pista em quadrados e retângulos para cobrir 100% do tabuleiro em 4 níveis de dificuldade.">
+  <meta property="og:image" content="https://catapulta.online/og.png">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-16 -16 32 32'><rect x='-12' y='-12' width='11' height='15' rx='2' fill='%23e55947' stroke='%2314202b' stroke-width='2'/><rect x='1' y='-12' width='11' height='11' rx='2' fill='%233d7be0' stroke='%2314202b' stroke-width='2'/><rect x='-12' y='5' width='24' height='7' rx='2' fill='%23f7b733' stroke='%2314202b' stroke-width='2'/></svg>">
+  <meta name="theme-color" content="#0e1a24">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Barlow+Condensed:wght@600;700&family=Bungee&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/retalhos.css">
+</head>
+<body>
+  <section id="screen-retalhos" class="screen rt-screen">
+    <div class="ambient" data-kind="home" aria-hidden="true"></div>
+    <div class="garland" data-bulbs="26"></div>
+
+    <div class="rt-wrap">
+      <!-- Topo: navegação, título e controles -->
+      <header class="rt-topbar">
+        <a class="btn small ghost rt-back" href="/" id="btn-back">← Mini-jogos</a>
+        <div class="rt-title-group">
+          <h1 class="rt-logo">RETALHOS</h1>
+          <span class="rt-sub">Tapete na Quermesse</span>
+        </div>
+        <div class="rt-top-actions">
+          <button class="chip-btn" data-act="mute" id="btn-mute" title="Som" aria-label="Som"></button>
+          <button class="chip-btn" data-act="rules" id="btn-rules" title="Sobre, regras e créditos" aria-label="Sobre, regras e créditos"></button>
+        </div>
+      </header>
+
+      <!-- Barra de nível (4 dificuldades) + cronômetro + progresso + erros + novo tabuleiro -->
+      <section class="panel rt-controls" aria-label="Dificuldade e partida">
+        <div class="rt-levels" role="radiogroup" aria-label="Nível de dificuldade" id="level-bar">
+          <button type="button" class="seg-btn" data-act="level" data-level="easy">Fácil</button>
+          <button type="button" class="seg-btn on" data-act="level" data-level="medium">Médio</button>
+          <button type="button" class="seg-btn" data-act="level" data-level="hard">Difícil</button>
+          <button type="button" class="seg-btn" data-act="level" data-level="expert">Mestre</button>
+        </div>
+        <div class="rt-meta-row">
+          <div class="rt-stats">
+            <span class="rt-stat" title="Tempo da partida"><b id="rt-timer">00:00</b></span>
+            <span class="rt-stat" id="rt-progress" title="Casas preenchidas">0/36</span>
+            <span class="rt-stat" id="rt-errors" title="Erros cometidos">Erros: <b>0</b></span>
+          </div>
+          <button type="button" class="btn small yellow" data-act="new-game" id="btn-new-game">Novo tabuleiro</button>
+        </div>
+      </section>
+
+      <!-- Tabuleiro N×N e barra de dica/status -->
+      <main class="panel rt-board-panel">
+        <div class="rt-status-bar" id="rt-status" role="status" aria-live="polite">
+          Arraste a partir de uma pista (ou toque nela e depois no canto) para formar o retângulo.
+        </div>
+
+        <div class="rt-stage" id="rt-stage">
+          <div class="rt-grid" id="rt-grid" role="grid" aria-label="Tabuleiro de Retalhos"></div>
+          <div class="rt-rects" id="rt-rects" aria-hidden="true"></div>
+          <div class="rt-clues" id="rt-clues" aria-hidden="true"></div>
+        </div>
+
+        <div class="rt-action-bar">
+          <button type="button" class="btn rt-act-btn" data-act="undo" id="btn-undo" disabled>Desfazer</button>
+          <button type="button" class="btn rt-act-btn ghost" data-act="clear" id="btn-clear" disabled>Limpar</button>
+          <button type="button" class="btn yellow rt-act-btn" data-act="hint" id="btn-hint">Dica</button>
+        </div>
+
+        <!-- Legenda rápida dos 4 formatos (fiel ao print) -->
+        <div class="rt-legend" aria-label="Legenda de formatos">
+          <div class="rt-leg-title">Complete cada forma para preencher a grade</div>
+          <div class="rt-leg-grid">
+            <span class="rt-leg-item"><i class="glyph-sq"></i>Quadrado</span>
+            <span class="rt-leg-item"><i class="glyph-vt"></i>Retângulo vertical</span>
+            <span class="rt-leg-item"><i class="glyph-hz"></i>Retângulo horizontal</span>
+            <span class="rt-leg-item"><i class="glyph-any"></i>Qualquer formato</span>
+          </div>
+          <small class="rt-leg-sub">Caso a forma tenha um número, esse deve ser seu tamanho.</small>
+        </div>
+      </main>
+
+      <div class="home-links">
+        <button type="button" class="btn small ghost" data-act="rules" id="btn-bottom-rules">Como joga</button>
+        <button type="button" class="btn small ghost" data-act="about" id="btn-bottom-about">Sobre e créditos</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="modal-root"></div>
+  <div id="fx"></div>
+  <div id="toasts" role="status" aria-live="polite"></div>
+
+  <script type="module" src="/retalhos/js/main.js"></script>
+</body>
+</html>

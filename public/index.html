@@ -4,119 +4,201 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://www.gstatic.com https://*.firebaseio.com https://*.firebasedatabase.app https://*.europe-west1.firebasedatabase.app; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; connect-src 'self' ws: wss: https://www.gstatic.com https://*.googleapis.com https://*.firebaseio.com https://*.firebasedatabase.app https://*.europe-west1.firebasedatabase.app wss://*.firebaseio.com wss://*.firebasedatabase.app wss://*.europe-west1.firebasedatabase.app; frame-src https://*.firebaseapp.com https://*.firebasedatabase.app https://*.europe-west1.firebasedatabase.app; object-src 'none'; base-uri 'self'">
-  <title>Catapulta — Jogo de Tabuleiro Online</title>
-  <meta name="description" content="Funde vilas, troque queijo por pedra e arme a catapulta para saquear os amigos. Jogo de tabuleiro online grátis de 2 a 4 jogadores direto no navegador.">
+  <title>Catapulta Online — Quermesse de Mini-Jogos no Navegador</title>
+  <meta name="description" content="Quermesse de mini-jogos grátis direto no navegador: jogue sozinho ou com os amigos no celular e no computador, sem cadastro.">
   <link rel="canonical" href="https://catapulta.online/">
   <meta property="og:type" content="website">
-  <meta property="og:site_name" content="Catapulta">
+  <meta property="og:site_name" content="Catapulta Online">
   <meta property="og:locale" content="pt_BR">
   <meta property="og:url" content="https://catapulta.online/">
-  <meta property="og:title" content="Catapulta — Jogo de Tabuleiro Online">
-  <meta property="og:description" content="Funde vilas, troque queijo por pedra e arme a catapulta para saquear os amigos direto no navegador.">
+  <meta property="og:title" content="Catapulta Online — Quermesse de Mini-Jogos">
+  <meta property="og:description" content="Quermesse de mini-jogos direto no navegador para jogar sozinho ou com os amigos no celular e no PC.">
   <meta property="og:image" content="https://catapulta.online/og.png">
   <meta property="og:image:type" content="image/png">
   <meta property="og:image:width" content="1200">
   <meta property="og:image:height" content="630">
-  <meta property="og:image:alt" content="Catapulta — Jogo de tabuleiro online de 2 a 4 jogadores">
+  <meta property="og:image:alt" content="Catapulta Online — Quermesse de Mini-Jogos">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Catapulta — Jogo de Tabuleiro Online">
-  <meta name="twitter:description" content="Funde vilas, troque queijo por pedra e arme a catapulta para saquear os amigos direto no navegador.">
+  <meta name="twitter:title" content="Catapulta Online — Quermesse de Mini-Jogos">
+  <meta name="twitter:description" content="Quermesse de mini-jogos direto no navegador para jogar sozinho ou com os amigos no celular e no PC.">
   <meta name="twitter:image" content="https://catapulta.online/og.png">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-22 -22 44 44'><path d='M3 4-12-12' stroke='%237a4a21' stroke-width='4.5' stroke-linecap='round'/><circle cx='-14' cy='-14' r='4.2' fill='%238a98aa' stroke='%2314202b' stroke-width='2'/><rect x='-16' y='4' width='32' height='5.2' rx='2' fill='%238c562b' stroke='%2314202b' stroke-width='2'/><path d='M-9 6-1-9 7 6Z' fill='%23a86b38' stroke='%2314202b' stroke-width='2' stroke-linejoin='round'/><path d='M2-10l8-2-1.8 2.8 1.8 2.5-8-.8Z' fill='%23e5482f' stroke='%2314202b' stroke-width='1.4'/><circle cx='-8.5' cy='10' r='5.8' fill='%235c3616' stroke='%2314202b' stroke-width='2'/><circle cx='-8.5' cy='10' r='2' fill='%23f7b733'/><circle cx='9.5' cy='10' r='5.8' fill='%235c3616' stroke='%2314202b' stroke-width='2'/><circle cx='9.5' cy='10' r='2' fill='%23f7b733'/></svg>">
   <meta name="theme-color" content="#0e1a24">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Barlow+Condensed:wght@600;700&family=Bungee&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
-  <!-- Tela inicial -->
   <section id="screen-home" class="screen">
     <div class="ambient" data-kind="home" aria-hidden="true"></div>
-    <div class="home">
+    <div class="home hub-home">
       <div class="garland" data-bulbs="26"></div>
-      <header class="marquee">
-        <h1 class="logo">CATAPULTA</h1>
-        <p class="tagline">Funde vilas, troque queijo por pedra e <b>arme a catapulta</b> para saquear os amigos.</p>
-      </header>
-      <div class="cast" id="cast" aria-hidden="true"></div>
-      <div class="panel join-panel">
-        <label class="field">
-          <span>Seu nome</span>
-          <input id="in-name" maxlength="14" placeholder="Como te chamam?" autocomplete="off">
-        </label>
-        <button class="btn big yellow" data-act="create" id="btn-create">Criar sala</button>
-        <div class="or"><span>ou entre numa sala</span></div>
-        <div class="join-row">
-          <input id="in-code" maxlength="4" placeholder="CÓDIGO" autocomplete="off" aria-label="Código da sala">
-          <button class="btn" data-act="join" id="btn-join">Entrar</button>
+
+      <header class="marquee hub-marquee">
+        <div class="hub-kicker" id="hub-kicker">Quermesse de Mini-Jogos</div>
+        <div class="hub-logo-wrap">
+          <h1 class="logo">CATAPULTA</h1>
+          <span class="hub-badge">.ONLINE</span>
         </div>
-        <details class="key-box" id="field-key">
-          <summary>Sala com chave (opcional)</summary>
-          <input id="in-key" maxlength="64" placeholder="A chave vai junto no link de convite" autocomplete="off" aria-label="Chave da sala">
-        </details>
-        <p class="hint">2 a 4 jogadores. Bots preenchem as vagas.</p>
+        <p class="tagline">Mini-jogos de tabuleiro, lógica e discórdia direto no navegador — para jogar <b>sozinho ou com os amigos</b> no celular e no PC.</p>
+      </header>
+
+      <div class="cast" id="cast" aria-hidden="true"></div>
+
+      <div class="booths-grid">
+        <!-- Barraca #01: Catapulta -->
+        <article class="panel booth-card">
+          <div class="booth-top-badges">
+            <span class="booth-tag">BARRACA #01 · ESTRATÉGIA</span>
+            <span class="booth-tag players-tag">2 A 4 JOGADORES</span>
+          </div>
+          <div class="booth-art">
+            <div id="booth-scene" class="booth-scene"></div>
+          </div>
+          <div class="booth-body">
+            <div class="booth-head">
+              <h2 class="booth-title">CATAPULTA</h2>
+              <span class="booth-status"><i></i>MULTIPLAYER</span>
+            </div>
+            <p class="booth-desc">Funde vilas, troque queijo por pedra nos portos e <b>arme a catapulta</b> para saquear os amigos até fazer 10 pontos.</p>
+            <div class="booth-feats" id="booth-feats-catapulta"></div>
+            <a class="btn big yellow booth-cta" href="/catapulta" id="btn-play-catapulta">Jogar Catapulta</a>
+          </div>
+        </article>
+
+        <!-- Barraca #02: Sol & Lua -->
+        <article class="panel booth-card">
+          <div class="booth-top-badges">
+            <span class="booth-tag">BARRACA #02 · RACIOCÍNIO</span>
+            <span class="booth-tag solo-tag">1 JOGADOR</span>
+          </div>
+          <div class="booth-art">
+            <div id="booth-scene-sol-lua" class="booth-scene"></div>
+          </div>
+          <div class="booth-body">
+            <div class="booth-head">
+              <h2 class="booth-title">SOL &amp; LUA</h2>
+              <span class="booth-status"><i></i>QUEBRA-CABEÇA</span>
+            </div>
+            <p class="booth-desc">Equilibre <b>Sol e Lua</b> na grade 6×6 respeitando os sinais de <b>=</b> e <b>×</b> sem repetir 3 seguidos. Sempre 100% na lógica!</p>
+            <div class="booth-feats" id="booth-feats-sol-lua"></div>
+            <a class="btn big yellow booth-cta" href="/sol-e-lua" id="btn-play-sol-lua">Jogar Sol &amp; Lua</a>
+          </div>
+        </article>
+
+        <!-- Barraca #03: Coroas -->
+        <article class="panel booth-card">
+          <div class="booth-top-badges">
+            <span class="booth-tag">BARRACA #03 · DEDUÇÃO</span>
+            <span class="booth-tag solo-tag">1 JOGADOR</span>
+          </div>
+          <div class="booth-art">
+            <div id="booth-scene-coroas" class="booth-scene"></div>
+          </div>
+          <div class="booth-body">
+            <div class="booth-head">
+              <h2 class="booth-title">COROAS</h2>
+              <span class="booth-status"><i></i>QUEBRA-CABEÇA</span>
+            </div>
+            <p class="booth-desc">Posicione exatamente <b>uma coroa</b> em cada linha, coluna e região colorida sem que duas coroas se toquem, nem na diagonal.</p>
+            <div class="booth-feats" id="booth-feats-coroas"></div>
+            <a class="btn big yellow booth-cta" href="/coroas" id="btn-play-coroas">Jogar Coroas</a>
+          </div>
+        </article>
+
+        <!-- Barraca #04: Serpentina -->
+        <article class="panel booth-card">
+          <div class="booth-top-badges">
+            <span class="booth-tag">BARRACA #04 · CAMINHO</span>
+            <span class="booth-tag solo-tag">1 JOGADOR</span>
+          </div>
+          <div class="booth-art">
+            <div id="booth-scene-serpentina" class="booth-scene"></div>
+          </div>
+          <div class="booth-body">
+            <div class="booth-head">
+              <h2 class="booth-title">SERPENTINA</h2>
+              <span class="booth-status"><i></i>QUEBRA-CABEÇA</span>
+            </div>
+            <p class="booth-desc">Conecte os <b>números em ordem</b> (1, 2, 3…) com um traço único, preenchendo <b>todas as casas</b> do tabuleiro e contornando as barreiras.</p>
+            <div class="booth-feats" id="booth-feats-serpentina"></div>
+            <a class="btn big yellow booth-cta" href="/serpentina" id="btn-play-serpentina">Jogar Serpentina</a>
+          </div>
+        </article>
+
+        <!-- Barraca #05: Retalhos -->
+        <article class="panel booth-card">
+          <div class="booth-top-badges">
+            <span class="booth-tag">BARRACA #05 · GEOMETRIA</span>
+            <span class="booth-tag solo-tag">1 JOGADOR</span>
+          </div>
+          <div class="booth-art">
+            <div id="booth-scene-retalhos" class="booth-scene"></div>
+          </div>
+          <div class="booth-body">
+            <div class="booth-head">
+              <h2 class="booth-title">RETALHOS</h2>
+              <span class="booth-status"><i></i>QUEBRA-CABEÇA</span>
+            </div>
+            <p class="booth-desc">Expanda cada pista em <b>quadrados e retângulos</b> (horizontais, verticais ou livres) respeitando os tamanhos até preencher 100% da grade.</p>
+            <div class="booth-feats" id="booth-feats-retalhos"></div>
+            <a class="btn big yellow booth-cta" href="/retalhos" id="btn-play-retalhos">Jogar Retalhos</a>
+          </div>
+        </article>
+
+        <!-- Barraca #06: Sudoku -->
+        <article class="panel booth-card">
+          <div class="booth-top-badges">
+            <span class="booth-tag">BARRACA #06 · CLÁSSICO</span>
+            <span class="booth-tag solo-tag">1 JOGADOR</span>
+          </div>
+          <div class="booth-art">
+            <div id="booth-scene-sudoku" class="booth-scene"></div>
+          </div>
+          <div class="booth-body">
+            <div class="booth-head">
+              <h2 class="booth-title">SUDOKU</h2>
+              <span class="booth-status"><i></i>QUEBRA-CABEÇA</span>
+            </div>
+            <p class="booth-desc">Complete a grade <b>9×9</b> com números de <b>1 a 9</b> sem repetir valores na mesma linha, coluna ou bloco 3×3, com modo rascunho e dicas.</p>
+            <div class="booth-feats" id="booth-feats-sudoku"></div>
+            <a class="btn big yellow booth-cta" href="/sudoku" id="btn-play-sudoku">Jogar Sudoku</a>
+          </div>
+        </article>
+
+        <!-- Barraca #07: Palavra -->
+        <article class="panel booth-card">
+          <div class="booth-top-badges">
+            <span class="booth-tag">BARRACA #07 · VOCABULÁRIO</span>
+            <span class="booth-tag solo-tag">1 JOGADOR</span>
+          </div>
+          <div class="booth-art">
+            <div id="booth-scene-palavra" class="booth-scene"></div>
+          </div>
+          <div class="booth-body">
+            <div class="booth-head">
+              <h2 class="booth-title">PALAVRA</h2>
+              <span class="booth-status"><i></i>QUEBRA-CABEÇA</span>
+            </div>
+            <p class="booth-desc">Descubra a <b>palavra secreta</b> da quermesse em até <b>6 tentativas</b> guiando-se pelas letras verdes e amarelas, de 4 a 7 letras.</p>
+            <div class="booth-feats" id="booth-feats-palavra"></div>
+            <a class="btn big yellow booth-cta" href="/palavra" id="btn-play-palavra">Jogar Palavra</a>
+          </div>
+        </article>
       </div>
-      <div class="home-links">
-        <button class="btn small ghost" data-act="rules" id="btn-home-rules">Como joga</button>
-        <button class="btn small ghost" data-act="about" id="btn-home-about">Sobre e créditos</button>
-      </div>
+
+      <footer class="hub-footer">
+        <span class="hub-soon">Novas barracas e mini-jogos em breve na quermesse</span>
+        <div class="home-links">
+          <button class="btn small ghost" data-act="about" id="btn-hub-about">Sobre e créditos</button>
+        </div>
+      </footer>
     </div>
   </section>
 
-  <!-- Sala de espera -->
-  <section id="screen-lobby" class="screen hidden">
-    <div class="panel lobby-card" id="lobby"></div>
-  </section>
-
-  <!-- Partida -->
-  <section id="screen-game" class="screen hidden">
-    <header id="players"></header>
-    <main id="stage">
-      <div class="ambient" data-kind="stage" aria-hidden="true"></div>
-      <div class="garland" data-bulbs="22"></div>
-      <div id="banner" role="status" aria-live="polite"></div>
-      <aside id="rank" aria-label="Classificação da partida"></aside>
-      <div id="corner">
-        <button class="chip-btn" data-act="mute" id="btn-mute" title="Som" aria-label="Som"></button>
-        <button class="chip-btn" data-act="rules" title="Sobre, regras e créditos" aria-label="Sobre, regras e créditos"></button>
-        <button class="chip-btn only-compact" data-act="toggle-log" id="btn-log" title="Diário e banco" aria-label="Diário e banco"></button>
-      </div>
-      <svg id="board" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Tabuleiro"></svg>
-      <div id="sum" aria-hidden="true"></div>
-      <div id="react">
-        <div id="emotes"></div>
-        <div class="stage-tools">
-          <button class="chip-btn" data-act="toggle-react" id="btn-react" title="Reagir" aria-label="Reagir"></button>
-          <div class="zoom-bar" id="zoom-ctrl">
-            <button class="zoom-btn" data-act="zoom-out" title="Afastar tabuleiro" aria-label="Afastar tabuleiro">−</button>
-            <button class="zoom-btn" data-act="zoom-in" title="Aproximar tabuleiro" aria-label="Aproximar tabuleiro">+</button>
-            <button class="zoom-btn hidden" data-act="zoom-reset" id="btn-zoom-reset" title="Centralizar tabuleiro" aria-label="Centralizar tabuleiro">⟲</button>
-          </div>
-        </div>
-      </div>
-      <button id="dice" data-act="roll" title="Rolar os dados" aria-label="Rolar os dados">
-        <span class="die" id="die-a"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-        <span class="die" id="die-b"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-      </button>
-      <div id="offer"></div>
-    </main>
-    <aside id="side">
-      <div class="side-head">
-        <span class="mini-logo">CATAPULTA</span>
-        <button class="room-chip" id="room-chip" title="Copiar link de convite"></button>
-        <button class="chip-btn only-compact" data-act="toggle-log" aria-label="Fechar diário" id="btn-log-close"></button>
-      </div>
-      <div id="bank"></div>
-      <div id="log"></div>
-    </aside>
-    <footer id="hud"></footer>
-  </section>
-
   <div id="modal-root"></div>
-  <div id="fx"></div>
-  <div id="toasts" role="status" aria-live="polite"></div>
 
-  <script type="module" src="js/main.js"></script>
+  <script type="module" src="/js/portal.js"></script>
 </body>
 </html>

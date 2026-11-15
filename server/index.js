@@ -120,7 +120,8 @@ const server = http.createServer((req, res) => {
     res.writeHead(400, { ...SECURITY_HEADERS, 'Content-Type': 'text/plain; charset=utf-8' }).end('Requisição inválida');
     return;
   }
-  if (rel === '/') rel = '/index.html';
+  if (rel.endsWith('/')) rel += 'index.html';
+  else if (!path.extname(rel)) rel += '/index.html';
   const file = path.resolve(PUBLIC, '.' + rel);
   const ext = path.extname(file);
   if (!file.startsWith(PUBLIC + path.sep) || !Object.hasOwn(MIME, ext)) {

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'self'">
+  <title>Serpentina — Trilha Lógica | Catapulta Online</title>
+  <meta name="description" content="Conecte os números em ordem preenchendo todas as casas do tabuleiro sem atravessar as barreiras. Quebra-cabeça lógico em 4 dificuldades.">
+  <link rel="canonical" href="https://catapulta.online/serpentina">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Catapulta Online">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:url" content="https://catapulta.online/serpentina">
+  <meta property="og:title" content="Serpentina — Trilha Lógica">
+  <meta property="og:description" content="Conecte os números em ordem e preencha todas as células contornando as barreiras da quermesse.">
+  <meta property="og:image" content="https://catapulta.online/og.png">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-16 -16 32 32'><path d='M-10 8V-8h10V8h10V-8' fill='none' stroke='%231fae96' stroke-width='6' stroke-linecap='round' stroke-linejoin='round'/><circle cx='-10' cy='8' r='5' fill='%2314202b' stroke='%23f7b733' stroke-width='2'/></svg>">
+  <meta name="theme-color" content="#0e1a24">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Barlow+Condensed:wght@600;700&family=Bungee&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/serpentina.css">
+</head>
+<body>
+  <section id="screen-serpentina" class="screen sp-screen">
+    <div class="ambient" data-kind="home" aria-hidden="true"></div>
+    <div class="garland" data-bulbs="26"></div>
+
+    <div class="sp-wrap">
+      <!-- Topo: navegação, título e controles -->
+      <header class="sp-topbar">
+        <a class="btn small ghost sp-back" href="/" id="btn-back">← Mini-jogos</a>
+        <div class="sp-title-group">
+          <h1 class="sp-logo">SERPENTINA</h1>
+          <span class="sp-sub">Trilha na Quermesse</span>
+        </div>
+        <div class="sp-top-actions">
+          <button class="chip-btn" data-act="mute" id="btn-mute" title="Som" aria-label="Som"></button>
+          <button class="chip-btn" data-act="rules" id="btn-rules" title="Sobre, regras e créditos" aria-label="Sobre, regras e créditos"></button>
+        </div>
+      </header>
+
+      <!-- Barra de nível (4 dificuldades) + cronômetro + progresso + erros + novo tabuleiro -->
+      <section class="panel sp-controls" aria-label="Dificuldade e partida">
+        <div class="sp-levels" role="radiogroup" aria-label="Nível de dificuldade" id="level-bar">
+          <button type="button" class="seg-btn" data-act="level" data-level="easy">Fácil</button>
+          <button type="button" class="seg-btn on" data-act="level" data-level="medium">Médio</button>
+          <button type="button" class="seg-btn" data-act="level" data-level="hard">Difícil</button>
+          <button type="button" class="seg-btn" data-act="level" data-level="expert">Mestre</button>
+        </div>
+        <div class="sp-meta-row">
+          <div class="sp-stats">
+            <span class="sp-stat" title="Tempo da partida"><b id="sp-timer">00:00</b></span>
+            <span class="sp-stat" id="sp-progress" title="Casas preenchidas">1/36</span>
+            <span class="sp-stat" id="sp-errors" title="Erros cometidos">Erros: <b>0</b></span>
+          </div>
+          <button type="button" class="btn small yellow" data-act="new-game" id="btn-new-game">Novo tabuleiro</button>
+        </div>
+      </section>
+
+      <!-- Tabuleiro N×N e barra de dica/status -->
+      <main class="panel sp-board-panel">
+        <div class="sp-status-bar" id="sp-status" role="status" aria-live="polite">
+          Arraste a partir do <b>1</b> para conectar os números em ordem e preencher tudo.
+        </div>
+
+        <div class="sp-stage" id="sp-stage">
+          <div class="sp-grid" id="sp-grid" role="grid" aria-label="Tabuleiro de Serpentina"></div>
+          <svg class="sp-svg" id="sp-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true"></svg>
+          <div class="sp-nodes" id="sp-nodes" aria-hidden="true"></div>
+        </div>
+
+        <div class="sp-action-bar">
+          <button type="button" class="btn sp-act-btn" data-act="undo" id="btn-undo" disabled>Desfazer</button>
+          <button type="button" class="btn sp-act-btn ghost" data-act="clear" id="btn-clear" disabled>Limpar</button>
+          <button type="button" class="btn yellow sp-act-btn" data-act="hint" id="btn-hint">Dica</button>
+        </div>
+      </main>
+
+      <div class="home-links">
+        <button type="button" class="btn small ghost" data-act="rules" id="btn-bottom-rules">Como joga</button>
+        <button type="button" class="btn small ghost" data-act="about" id="btn-bottom-about">Sobre e créditos</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="modal-root"></div>
+  <div id="fx"></div>
+  <div id="toasts" role="status" aria-live="polite"></div>
+
+  <script type="module" src="/serpentina/js/main.js"></script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'self'">
+  <title>Palavra — Letreiro na Quermesse | Catapulta Online</title>
+  <meta name="description" content="Descubra a palavra secreta em português em até 6 tentativas. 4 níveis: 4, 5, 6 e 7 letras.">
+  <link rel="canonical" href="https://catapulta.online/palavra">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Catapulta Online">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:url" content="https://catapulta.online/palavra">
+  <meta property="og:title" content="Palavra — Letreiro na Quermesse">
+  <meta property="og:description" content="Adivinhe a palavra secreta em até 6 tentativas, de 4 a 7 letras.">
+  <meta property="og:image" content="https://catapulta.online/og.png">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-16 -16 32 32'><rect x='-13' y='-13' width='26' height='26' rx='5' fill='%233bab6a' stroke='%2314202b' stroke-width='2.4'/><text y='6' text-anchor='middle' font-family='sans-serif' font-weight='900' font-size='18' fill='%23fff8ea'>P</text></svg>">
+  <meta name="theme-color" content="#0e1a24">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Barlow+Condensed:wght@600;700&family=Bungee&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/palavra.css">
+</head>
+<body>
+  <section id="screen-palavra" class="screen pl-screen">
+    <div class="ambient" data-kind="home" aria-hidden="true"></div>
+    <div class="garland" data-bulbs="26"></div>
+
+    <div class="pl-wrap">
+      <header class="pl-topbar">
+        <a class="btn small ghost" href="/" id="btn-back">← Mini-jogos</a>
+        <div class="pl-title-group">
+          <h1 class="pl-logo">PALAVRA</h1>
+          <span class="pl-sub">Letreiro na Quermesse</span>
+        </div>
+        <div class="pl-top-actions">
+          <button class="chip-btn" data-act="mute" id="btn-mute" title="Som" aria-label="Som"></button>
+          <button class="chip-btn" data-act="rules" id="btn-rules" title="Sobre, regras e créditos" aria-label="Sobre, regras e créditos"></button>
+        </div>
+      </header>
+
+      <section class="panel pl-controls" aria-label="Dificuldade e partida">
+        <div class="pl-levels" role="radiogroup" aria-label="Nível de dificuldade" id="level-bar">
+          <button type="button" class="seg-btn" data-act="level" data-level="easy">Fácil<small>4 letras</small></button>
+          <button type="button" class="seg-btn on" data-act="level" data-level="medium">Médio<small>5 letras</small></button>
+          <button type="button" class="seg-btn" data-act="level" data-level="hard">Difícil<small>6 letras</small></button>
+          <button type="button" class="seg-btn" data-act="level" data-level="expert">Mestre<small>7 letras</small></button>
+        </div>
+        <div class="pl-meta-row">
+          <div class="pl-stats">
+            <span class="pl-stat" title="Tempo da partida"><b id="pl-timer">00:00</b></span>
+            <span class="pl-stat" id="pl-progress" title="Tentativas usadas">0/6</span>
+            <span class="pl-stat" id="pl-errors" title="Erros cometidos">Erros: <b>0</b></span>
+          </div>
+          <button type="button" class="btn small yellow" data-act="new-game" id="btn-new-game">Nova palavra</button>
+        </div>
+      </section>
+
+      <main class="panel pl-board-panel">
+        <div class="pl-status-bar" id="pl-status" role="status" aria-live="polite">
+          Digite uma palavra e aperte <b>Enter</b>.
+        </div>
+
+        <div class="pl-grid" id="pl-grid" aria-label="Grade de tentativas"></div>
+
+        <div class="pl-kbd" id="pl-kbd" aria-label="Teclado virtual"></div>
+
+        <div class="pl-action-bar">
+          <button type="button" class="btn pl-act-btn" data-act="undo" id="btn-undo" disabled>Desfazer</button>
+          <button type="button" class="btn pl-act-btn ghost" data-act="clear" id="btn-clear" disabled>Limpar</button>
+          <button type="button" class="btn yellow pl-act-btn" data-act="hint" id="btn-hint">Dica</button>
+        </div>
+      </main>
+
+      <div class="home-links">
+        <button type="button" class="btn small ghost" data-act="rules" id="btn-bottom-rules">Como joga</button>
+        <button type="button" class="btn small ghost" data-act="about" id="btn-bottom-about">Sobre e créditos</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="modal-root"></div>
+  <div id="fx"></div>
+  <div id="toasts" role="status" aria-live="polite"></div>
+
+  <script type="module" src="/palavra/js/main.js"></script>
+</body>
+</html>

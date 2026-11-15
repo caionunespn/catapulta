@@ -1,1 +1,1 @@
-export * from '../public/js/engine/bot.js';
+export * from '../public/catapulta/js/engine/bot.js';

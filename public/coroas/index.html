@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'self'">
+  <title>Coroas — Quebra-Cabeça Lógico | Catapulta Online</title>
+  <meta name="description" content="Posicione exatamente uma coroa em cada linha, coluna e região de cor sem que duas coroas se toquem. Quebra-cabeça lógico com 4 níveis de dificuldade.">
+  <link rel="canonical" href="https://catapulta.online/coroas">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Catapulta Online">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:url" content="https://catapulta.online/coroas">
+  <meta property="og:title" content="Coroas — Quebra-Cabeça Lógico">
+  <meta property="og:description" content="Uma coroa por linha, coluna e região de cor, sem se tocarem nem na diagonal. 4 níveis 100% dedutíveis.">
+  <meta property="og:image" content="https://catapulta.online/og.png">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-16 -16 32 32'><path d='M-11 8-12-6-5 0 0-10 5 0 12-6 11 8Z' fill='%23f7b733' stroke='%2314202b' stroke-width='2.2' stroke-linejoin='round'/><circle cy='3' r='2.2' fill='%23e5482f' stroke='%2314202b' stroke-width='1.5'/></svg>">
+  <meta name="theme-color" content="#0e1a24">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Barlow+Condensed:wght@600;700&family=Bungee&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/coroas.css">
+</head>
+<body>
+  <section id="screen-coroas" class="screen cr-screen">
+    <div class="ambient" data-kind="home" aria-hidden="true"></div>
+    <div class="garland" data-bulbs="26"></div>
+
+    <div class="cr-wrap">
+      <!-- Topo: navegação, título e controles -->
+      <header class="cr-topbar">
+        <a class="btn small ghost cr-back" href="/" id="btn-back">← Mini-jogos</a>
+        <div class="cr-title-group">
+          <h1 class="cr-logo">COROAS</h1>
+          <span class="cr-sub">Rainhas na Quermesse</span>
+        </div>
+        <div class="cr-top-actions">
+          <button class="chip-btn" data-act="mute" id="btn-mute" title="Som" aria-label="Som"></button>
+          <button class="chip-btn" data-act="rules" id="btn-rules" title="Sobre, regras e créditos" aria-label="Sobre, regras e créditos"></button>
+        </div>
+      </header>
+
+      <!-- Barra de nível (4 dificuldades) + cronômetro + erros + novo tabuleiro -->
+      <section class="panel cr-controls" aria-label="Dificuldade e partida">
+        <div class="cr-levels" role="radiogroup" aria-label="Nível de dificuldade" id="level-bar">
+          <button type="button" class="seg-btn" data-act="level" data-level="easy">Fácil</button>
+          <button type="button" class="seg-btn on" data-act="level" data-level="medium">Médio</button>
+          <button type="button" class="seg-btn" data-act="level" data-level="hard">Difícil</button>
+          <button type="button" class="seg-btn" data-act="level" data-level="expert">Mestre</button>
+        </div>
+        <div class="cr-meta-row">
+          <div class="cr-stats">
+            <span class="cr-stat" title="Tempo da partida"><b id="cr-timer">00:00</b></span>
+            <span class="cr-stat" id="cr-progress" title="Coroas posicionadas">0/7</span>
+            <span class="cr-stat" id="cr-errors" title="Erros cometidos">Erros: <b>0</b></span>
+          </div>
+          <button type="button" class="btn small yellow" data-act="new-game" id="btn-new-game">Novo tabuleiro</button>
+        </div>
+      </section>
+
+      <!-- Tabuleiro N×N e barra de dica/status -->
+      <main class="panel cr-board-panel">
+        <div class="cr-status-bar" id="cr-status" role="status" aria-live="polite">
+          Toque 1x para <b>×</b> e 2x para <b>Coroa</b>.
+        </div>
+
+        <div class="cr-stage">
+          <div class="cr-grid" id="cr-grid" role="grid" aria-label="Tabuleiro de Coroas"></div>
+        </div>
+
+        <div class="cr-action-bar">
+          <button type="button" class="btn cr-act-btn" data-act="undo" id="btn-undo" disabled>Desfazer</button>
+          <button type="button" class="btn cr-act-btn ghost" data-act="clear" id="btn-clear" disabled>Limpar</button>
+          <button type="button" class="btn yellow cr-act-btn" data-act="hint" id="btn-hint">Dica</button>
+        </div>
+      </main>
+
+      <div class="home-links">
+        <button type="button" class="btn small ghost" data-act="rules" id="btn-bottom-rules">Como joga</button>
+        <button type="button" class="btn small ghost" data-act="about" id="btn-bottom-about">Sobre e créditos</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="modal-root"></div>
+  <div id="fx"></div>
+  <div id="toasts" role="status" aria-live="polite"></div>
+
+  <script type="module" src="/coroas/js/main.js"></script>
+</body>
+</html>

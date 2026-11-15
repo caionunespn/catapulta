@@ -1,6 +1,6 @@
 import { BoardView } from './board.js';
-import { COLORS, avatar, ico, installSprite } from './art.js';
-import { sfx, flyIcon, flyBoulder, shake, bubble, burst, confetti, toast, isMuted, setMuted } from './fx.js';
+import { COLORS, avatar, ico, installSprite } from '../../js/art.js';
+import { sfx, flyIcon, flyBoulder, shake, bubble, burst, confetti, toast, isMuted, setMuted } from '../../js/fx.js';
 import { connectFirebase, isFirebaseConfigured } from './net-firebase.js';
 
 installSprite();

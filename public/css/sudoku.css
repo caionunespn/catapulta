@@ -1,0 +1,392 @@
+/* Sudoku 9x9 no Design System de Quermesse Noturna */
+
+.sk-screen {
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(36px + var(--sat)) 14px calc(28px + var(--sab));
+}
+
+.sk-wrap {
+  position: relative;
+  z-index: 1;
+  width: min(490px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 0 auto;
+}
+
+/* ---------- cabeçalho ---------- */
+.sk-topbar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.sk-title-group {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.sk-logo {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(24px, 6.8vw, 34px);
+  line-height: 1;
+  letter-spacing: .02em;
+  color: var(--yellow);
+  -webkit-text-stroke: 1.8px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 2px 2px 0 var(--red), 3px 3px 0 var(--red-2), 4px 4px 0 var(--ink);
+}
+
+.sk-sub {
+  font-family: var(--label);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.sk-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---------- barra de dificuldade e status ---------- */
+.sk-controls {
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.sk-levels {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.sk-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.sk-stats {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sk-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 9px;
+  border: 1.5px solid var(--ink);
+  background: var(--night-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font-family: var(--label);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: .04em;
+  color: var(--mute);
+  font-variant-numeric: tabular-nums;
+}
+
+.sk-stat b {
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: 14px;
+  color: var(--yellow);
+}
+
+.sk-stat.has-err {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1.5px rgba(229, 72, 47, .65);
+  color: var(--cream);
+}
+
+.sk-stat.has-err b {
+  color: var(--red);
+}
+
+/* ---------- painel do tabuleiro ---------- */
+.sk-board-panel {
+  padding: 14px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+}
+
+.sk-status-bar {
+  min-height: 42px;
+  padding: 8px 12px;
+  border-radius: 11px;
+  border: 2px solid var(--ink);
+  background: var(--night-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+  color: var(--cream);
+  font-size: 14px;
+  line-height: 1.32;
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background .2s, box-shadow .2s, color .2s;
+}
+
+.sk-status-bar b { color: var(--yellow); }
+
+.sk-status-bar.err {
+  background: color-mix(in srgb, var(--red) 24%, var(--night-2));
+  box-shadow: inset 0 0 0 1.5px var(--red);
+  color: #fff8ea;
+}
+
+.sk-status-bar.hint {
+  background: color-mix(in srgb, var(--yellow) 18%, var(--night-2));
+  box-shadow: inset 0 0 0 1.5px var(--yellow);
+}
+
+.sk-status-bar.win {
+  background: color-mix(in srgb, var(--green) 26%, var(--night-2));
+  box-shadow: inset 0 0 0 2px var(--yellow);
+  font-family: var(--label);
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+  color: var(--yellow);
+}
+
+/* ---------- grade 9x9 com blocos 3x3 ---------- */
+.sk-stage {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border: 3.5px solid var(--ink);
+  border-radius: 13px;
+  overflow: hidden;
+  background: var(--ink);
+  box-shadow: 0 8px 22px rgba(0, 0, 0, .42);
+}
+
+.sk-grid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  grid-template-rows: repeat(9, minmax(0, 1fr));
+  gap: 0;
+}
+
+.sk-cell {
+  position: relative;
+  background: #fbf3df;
+  border-right: 1px solid rgba(20, 32, 43, .22);
+  border-bottom: 1px solid rgba(20, 32, 43, .22);
+  border-top: none;
+  border-left: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  user-select: none;
+  transition: background .1s;
+}
+
+/* Divisórias grossas dos blocos 3x3 */
+.sk-cell.b-right { border-right: 2.8px solid var(--ink); }
+.sk-cell.b-bottom { border-bottom: 2.8px solid var(--ink); }
+
+.sk-cell.given {
+  background: #e5d4ae;
+}
+
+.sk-cell.peer {
+  background: #f3e4bd;
+}
+
+.sk-cell.given.peer {
+  background: #dac496;
+}
+
+.sk-cell.same-num {
+  background: #ffe08a;
+}
+
+.sk-cell.selected {
+  background: #ffd25a;
+  box-shadow: inset 0 0 0 2.5px var(--ink);
+  z-index: 1;
+}
+
+.sk-cell.bad {
+  background:
+    repeating-linear-gradient(
+      -45deg,
+      rgba(229, 72, 47, .24) 0 6px,
+      rgba(229, 72, 47, .42) 6px 12px
+    ),
+    #f9dfd8;
+  box-shadow: inset 0 0 0 2.2px var(--red);
+}
+
+.sk-cell.hint-ctx {
+  box-shadow: inset 0 0 0 2px rgba(31, 174, 150, .75);
+}
+
+.sk-cell.hint-target {
+  background: #ffe89e;
+  box-shadow: inset 0 0 0 3px var(--red);
+  animation: sk-pulse 1.1s ease-in-out infinite;
+  z-index: 2;
+}
+
+@keyframes sk-pulse {
+  50% { box-shadow: inset 0 0 0 5px var(--yellow); }
+}
+
+.sk-val {
+  font-family: var(--display);
+  font-size: clamp(16px, 4.4vw, 23px);
+  line-height: 1;
+  color: #1d4ed8;
+}
+
+.sk-cell.given .sk-val {
+  color: var(--ink);
+}
+
+.sk-cell.bad .sk-val {
+  color: var(--red-2);
+}
+
+.sk-val.pop {
+  animation: piece-pop .28s var(--snap) both;
+}
+
+.sk-val.ghost-hint {
+  opacity: .45;
+  color: var(--green);
+}
+
+/* Notas de rascunho 3x3 dentro da célula */
+.sk-notes {
+  width: 100%;
+  height: 100%;
+  padding: 2px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  place-items: center;
+  pointer-events: none;
+}
+
+.sk-notes i {
+  font-style: normal;
+  font-family: var(--body);
+  font-weight: 700;
+  font-size: clamp(8px, 2vw, 10.5px);
+  line-height: 1;
+  color: rgba(20, 32, 43, .72);
+}
+
+/* ---------- teclado de 1 a 9 ---------- */
+.sk-numpad {
+  display: grid;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  gap: 5px;
+}
+
+.sk-num-btn {
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  padding: 7px 2px 5px;
+  background: var(--cream);
+  color: var(--ink);
+  box-shadow: 0 3px 0 var(--cream-2), 0 3px 0 1.5px var(--ink);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  cursor: pointer;
+  transition: transform .1s, background .12s;
+}
+
+.sk-num-btn:hover:not(:disabled) {
+  background: #fff9ec;
+  transform: translateY(-1px);
+}
+
+.sk-num-btn:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 var(--cream-2), 0 1px 0 1.5px var(--ink);
+}
+
+.sk-num-btn.done {
+  opacity: .38;
+  background: var(--night-2);
+  color: var(--mute);
+  box-shadow: none;
+}
+
+.sk-num-btn b {
+  font-family: var(--display);
+  font-size: clamp(16px, 4.2vw, 20px);
+  line-height: 1;
+}
+
+.sk-num-btn small {
+  font-family: var(--label);
+  font-weight: 700;
+  font-size: 10.5px;
+  color: #595648;
+}
+
+.sk-num-btn.done small {
+  color: var(--mute);
+}
+
+/* ---------- barra de ações ---------- */
+.sk-action-bar {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.sk-act-btn {
+  width: 100%;
+  font-size: 14px;
+  padding: 9px 8px;
+}
+
+.sk-act-btn.notes-on {
+  background: var(--blue);
+  color: #fff8ea;
+  box-shadow: 0 3px 0 var(--blue-2), 0 3px 0 1.5px var(--ink);
+}
+
+@media (max-width: 480px) {
+  .sk-screen { padding: calc(28px + var(--sat)) 10px calc(20px + var(--sab)); }
+  .sk-board-panel { padding: 10px 10px 12px; }
+  .sk-act-btn { font-size: 12.5px; padding: 8px 4px; }
+}

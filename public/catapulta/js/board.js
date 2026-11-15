@@ -1,5 +1,5 @@
 // Desenho do tabuleiro em SVG: ilha de quermesse à noite.
-import { INK, SHAPES, BOULDER, walkerShape, cartShape } from './art.js';
+import { INK, SHAPES, BOULDER, walkerShape, cartShape } from '../../js/art.js';
 
 const SCENERY = {
   forest: { icons: ['pine', 'tree', 'pine', 'tree'], spots: [[-25, -19], [21, -25], [-15, 31], [20, 27]] },

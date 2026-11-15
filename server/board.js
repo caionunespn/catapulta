@@ -1,1 +1,1 @@
-export * from '../public/js/engine/board.js';
+export * from '../public/catapulta/js/engine/board.js';
