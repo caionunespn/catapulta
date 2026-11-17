@@ -14,51 +14,86 @@ export function setMuted(m) {
   try {
     localStorage.setItem('catapulta_mute', m ? '1' : '0');
   } catch {}
+  if (!m) unlockAudio();
 }
 
-function ac() {
-  if (muted) return null;
+function ensureCtx() {
+  if (muted || typeof window === 'undefined') return null;
   try {
-    if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
-    if (ctx.state === 'suspended') ctx.resume();
-    return ctx.state === 'running' ? ctx : null;
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return null;
+    if (!ctx) ctx = new AudioCtx();
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+    return ctx;
   } catch {
     return null;
   }
 }
 
-function tone(freq, dur, { type = 'sine', vol = 0.14, at = 0, to = null } = {}) {
-  const a = ac();
+export function unlockAudio() {
+  ensureCtx();
+}
+
+if (typeof window !== 'undefined') {
+  for (const ev of ['pointerdown', 'touchstart', 'keydown', 'click']) {
+    window.addEventListener(ev, unlockAudio, { capture: true, passive: true });
+  }
+}
+
+function withAudio(fn) {
+  const a = ensureCtx();
   if (!a) return;
-  const t = a.currentTime + at;
-  const o = a.createOscillator();
-  const g = a.createGain();
-  o.type = type;
-  o.frequency.setValueAtTime(freq, t);
-  if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
-  g.gain.setValueAtTime(vol, t);
-  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-  o.connect(g).connect(a.destination);
-  o.start(t);
-  o.stop(t + dur + 0.02);
+  if (a.state === 'running') {
+    fn(a);
+    return;
+  }
+  const firedAt = typeof performance !== 'undefined' ? performance.now() : Date.now();
+  try {
+    a.resume()
+      .then(() => {
+        const now = typeof performance !== 'undefined' ? performance.now() : Date.now();
+        if (!muted && a.state === 'running' && now - firedAt < 350) {
+          fn(a);
+        }
+      })
+      .catch(() => {});
+  } catch {}
+}
+
+function tone(freq, dur, { type = 'sine', vol = 0.14, at = 0, to = null } = {}) {
+  withAudio((a) => {
+    const t = a.currentTime + at;
+    const o = a.createOscillator();
+    const g = a.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(freq, t);
+    if (to) o.frequency.exponentialRampToValueAtTime(to, t + dur);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+    o.connect(g).connect(a.destination);
+    o.start(t);
+    o.stop(t + dur + 0.02);
+  });
 }
 
 function noise(dur, { vol = 0.2, at = 0, freq = 1200 } = {}) {
-  const a = ac();
-  if (!a) return;
-  const t = a.currentTime + at;
-  const buf = a.createBuffer(1, Math.ceil(a.sampleRate * dur), a.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
-  const src = a.createBufferSource();
-  src.buffer = buf;
-  const f = a.createBiquadFilter();
-  f.type = 'lowpass';
-  f.frequency.value = freq;
-  const g = a.createGain();
-  g.gain.value = vol;
-  src.connect(f).connect(g).connect(a.destination);
-  src.start(t);
+  withAudio((a) => {
+    const t = a.currentTime + at;
+    const buf = a.createBuffer(1, Math.ceil(a.sampleRate * dur), a.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    const src = a.createBufferSource();
+    src.buffer = buf;
+    const f = a.createBiquadFilter();
+    f.type = 'lowpass';
+    f.frequency.value = freq;
+    const g = a.createGain();
+    g.gain.value = vol;
+    src.connect(f).connect(g).connect(a.destination);
+    src.start(t);
+  });
 }
 
 export const sfx = {
@@ -97,6 +132,60 @@ export const sfx = {
   },
   win: () => {
     [523, 659, 784, 1047, 784, 1047].forEach((f, i) => tone(f, 0.22, { type: 'square', vol: 0.09, at: i * 0.13 }));
+  },
+  drawTick: (ratio = 0.5) => tone(420 + (1 - ratio) * 260, 0.032, { type: 'triangle', vol: 0.035 }),
+  hivePop: (heavy = false) => {
+    tone(heavy ? 185 : 270, 0.08, { type: 'sawtooth', vol: 0.045, to: heavy ? 290 : 390 });
+  },
+  beeHit: (heavy = false) => {
+    noise(0.035, { freq: heavy ? 680 : 1200, vol: heavy ? 0.14 : 0.08 });
+    tone(heavy ? 155 : 240, 0.08, { type: 'triangle', vol: heavy ? 0.11 : 0.07, to: heavy ? 85 : 130 });
+  },
+  dogWhimper: (reason) => {
+    if (reason === 'water') {
+      noise(0.28, { freq: 950, vol: 0.22 });
+      tone(340, 0.18, { type: 'sine', vol: 0.1, to: 150, at: 0.04 });
+    } else if (reason === 'lava') {
+      noise(0.32, { freq: 2400, vol: 0.16 });
+      tone(220, 0.24, { type: 'sawtooth', vol: 0.09, to: 90 });
+    } else {
+      tone(620, 0.14, { type: 'triangle', vol: 0.12, to: 390 });
+      tone(440, 0.2, { type: 'triangle', vol: 0.11, to: 220, at: 0.11 });
+    }
+  },
+  vroom: (kind = 'car') => {
+    if (kind === 'moto' || kind === 1) {
+      tone(270, 0.15, { type: 'sawtooth', vol: 0.1, to: 640 });
+      tone(540, 0.12, { type: 'triangle', vol: 0.08, to: 820, at: 0.05 });
+    } else if (kind === 'truck' || kind === 3) {
+      noise(0.14, { freq: 520, vol: 0.16, at: 0.02 });
+      tone(92, 0.24, { type: 'sawtooth', vol: 0.12, to: 185 });
+      tone(145, 0.16, { type: 'triangle', vol: 0.09, to: 240, at: 0.07 });
+    } else {
+      tone(165, 0.18, { type: 'sawtooth', vol: 0.1, to: 420 });
+      tone(330, 0.13, { type: 'triangle', vol: 0.08, to: 560, at: 0.06 });
+    }
+  },
+  crash: () => {
+    noise(0.2, { freq: 480, vol: 0.34 });
+    tone(135, 0.24, { type: 'sawtooth', vol: 0.13, to: 64 });
+    tone(460, 0.09, { type: 'square', vol: 0.08, at: 0.03 });
+    tone(370, 0.15, { type: 'square', vol: 0.08, at: 0.12 });
+  },
+  gateGood: () => {
+    tone(523, 0.09, { type: 'triangle', vol: 0.1, to: 659 });
+    tone(784, 0.14, { type: 'triangle', vol: 0.1, at: 0.06, to: 1047 });
+  },
+  gateBad: () => {
+    noise(0.11, { freq: 480, vol: 0.16 });
+    tone(210, 0.16, { type: 'sawtooth', vol: 0.1, to: 115 });
+  },
+  clash: () => {
+    noise(0.04, { freq: 900, vol: 0.09 });
+    tone(300, 0.06, { type: 'square', vol: 0.06, to: 170 });
+  },
+  chargeTick: () => {
+    tone(720, 0.045, { type: 'triangle', vol: 0.055, to: 920 });
   },
 };
 

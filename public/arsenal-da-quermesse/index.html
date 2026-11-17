@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'self'">
+  <title>Arsenal da Quermesse — Tower Defense em Grade (40 Fases) | Catapulta Online</title>
+  <meta name="description" content="Monte seu arsenal na grade tática, some peças iguais para evoluí-las até o nível Mítico e enfrente 40 fases de hordas cada vez mais desafiadoras!">
+  <link rel="canonical" href="https://catapulta.online/arsenal-da-quermesse">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Catapulta Online">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:url" content="https://catapulta.online/arsenal-da-quermesse">
+  <meta property="og:title" content="Arsenal da Quermesse — Tower Defense em Grade">
+  <meta property="og:description" content="Bruxa, Escudo, Espada, Boneco de Voodoo, Tomo de Feitiços e mais em 40 fases de Tower Defense com fusões na grade!">
+  <meta property="og:image" content="https://catapulta.online/og.png">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-16 -16 32 32'><path d='M-9-9 L0-12 L9-9 V1 C9 8 3 12 0 14 C-3 12 -9 8 -9 1 Z' fill='%233d7be0' stroke='%2314202b' stroke-width='2'/><path d='M0-8 V10 M-5-2 H5' stroke='%23f7b733' stroke-width='2.4' stroke-linecap='round'/></svg>">
+  <meta name="theme-color" content="#0e1a24">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Barlow+Condensed:wght@600;700&family=Bungee&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/arsenal-da-quermesse.css">
+</head>
+<body>
+  <section id="screen-arsenal" class="screen ars-screen">
+    <div class="ambient" data-kind="home" aria-hidden="true"></div>
+    <div class="garland" data-bulbs="26"></div>
+
+    <div class="ars-wrap" id="ars-wrap" data-phase="prep">
+      <header class="ars-topbar">
+        <a class="btn small ghost ars-back" href="/" id="btn-back">← Mini-jogos</a>
+        <div class="ars-title-group">
+          <h1 class="ars-logo">ARSENAL DA QUERMESSE</h1>
+          <span class="ars-sub">Tower Defense em Grade · 40 Fases</span>
+        </div>
+        <div class="ars-top-actions">
+          <button class="chip-btn" data-act="mute" id="btn-mute" title="Som" aria-label="Som"></button>
+          <button class="chip-btn" data-act="rules" id="btn-rules" title="Regras, peças e créditos" aria-label="Regras, peças e créditos"></button>
+        </div>
+      </header>
+
+      <!-- Faixa de seleção de fase & status da partida -->
+      <section class="panel ars-controls" aria-label="Fase e recursos">
+        <div class="ars-level-bar">
+          <button type="button" class="btn small ghost ars-nav-btn" data-act="prev" id="btn-prev" title="Fase anterior" aria-label="Fase anterior">◀</button>
+          <button type="button" class="ars-level-btn" data-act="map" id="btn-level-map" title="Escolher fase (1 a 40)">
+            <span class="ars-level-meta">
+              <span class="ars-level-num" id="ars-level-num">FASE 1 / 40</span>
+              <span class="ars-level-name" id="ars-level-name">Portão de Entrada</span>
+            </span>
+            <span>▾</span>
+          </button>
+          <button type="button" class="btn small ghost ars-nav-btn" data-act="next" id="btn-next" title="Próxima fase" aria-label="Próxima fase">▶</button>
+          <span class="ars-stars-pill" id="ars-total-stars" title="Total de estrelas">★ 0/120</span>
+        </div>
+
+        <div class="ars-hud-grid">
+          <div class="ars-wall-meter" id="ars-wall-meter">
+            <span class="ars-wall-ico" id="ars-wall-ico"></span>
+            <div class="ars-wall-bars">
+              <div class="ars-wall-labels">
+                <span class="ars-wall-txt" id="ars-wall-txt">Muralha <b>100/100</b></span>
+                <span class="ars-armor-txt hidden" id="ars-armor-txt">+0 Escudo</span>
+              </div>
+              <div class="ars-bar-track">
+                <div class="ars-bar-hp" id="ars-bar-hp"></div>
+                <div class="ars-bar-armor" id="ars-bar-armor"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="ars-hud-pills">
+            <span class="ars-pill gold" id="ars-gold-pill"><b>11</b> Ouro</span>
+            <span class="ars-pill dps" id="ars-dps-pill"><b>0</b> DPS</span>
+            <span class="ars-pill wave" id="ars-wave-pill">Horda <b>1/3</b></span>
+            <span class="ars-pill expand hidden" id="ars-expand-pill">+3 Espaços Grátis</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- Momento 1 (Preparo): Prévia compacta da horda e botão de iniciar batalha -->
+      <section class="panel ars-prep-banner" id="ars-prep-banner" aria-label="Preparo da horda">
+        <div class="ars-wave-preview" id="ars-wave-preview" aria-live="polite"></div>
+        <div class="ars-prep-actions">
+          <button type="button" class="btn ghost small" data-act="retry" id="btn-restart" title="Reiniciar fase (R)">Reiniciar</button>
+          <button type="button" class="btn yellow ars-fight-btn" data-act="fight" id="btn-fight">Chamar Horda 1/3!</button>
+        </div>
+      </section>
+
+      <!-- Momento 2 (Combate): Abre a lane vertical com inimigos descendo e poderes saindo do seu lado -->
+      <section class="panel ars-arena-panel" id="ars-arena-panel" aria-label="Batalha na lane vertical">
+        <div class="ars-combat-bar">
+          <div class="ars-combat-progress">
+            <span class="ars-combat-status" id="ars-combat-status" aria-live="polite">Horda 1/3</span>
+            <div class="ars-wave-track"><div class="ars-wave-fill" id="ars-wave-fill"></div></div>
+          </div>
+          <div class="ars-speed-group" role="group" aria-label="Velocidade do combate">
+            <button type="button" class="ars-spd-btn on" data-act="set-speed" data-spd="1">1×</button>
+            <button type="button" class="ars-spd-btn" data-act="set-speed" data-spd="2">2×</button>
+            <button type="button" class="ars-spd-btn" data-act="set-speed" data-spd="3">3×</button>
+          </div>
+        </div>
+
+        <div class="ars-stage" id="ars-stage">
+          <canvas class="ars-canvas" id="ars-canvas" width="360" height="396" aria-label="Lane vertical de combate"></canvas>
+          <div class="ars-overlay hidden" id="ars-overlay" role="dialog" aria-live="polite">
+            <div class="ars-result-card">
+              <h2 class="ars-result-title" id="ars-res-title">Muralha Protegida!</h2>
+              <div class="ars-result-stars" id="ars-res-stars"></div>
+              <p class="ars-result-sub" id="ars-res-sub"></p>
+              <div class="ars-result-btns">
+                <button type="button" class="btn ghost small" data-act="retry" id="btn-res-retry">Repetir</button>
+                <button type="button" class="btn yellow" data-act="advance" id="btn-res-next">Próxima →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Grade Tática (seu lado, alinhada abaixo da Muralha durante o combate!) + Reserva + Loja -->
+      <section class="panel ars-grid-panel">
+        <div class="ars-panel-head" id="ars-grid-head">
+          <span class="ars-sec-title">Seu Arsenal <small id="ars-grid-hint">Arraste ou toque para somar peças iguais</small></span>
+          <button type="button" class="btn ghost small" data-act="rotate-active" id="btn-rotate-top" disabled>↻ Girar</button>
+        </div>
+
+        <div class="ars-grid-wrap">
+          <div class="ars-grid" id="ars-grid" role="application" aria-label="Grade tática de 4x4 até 6x6"></div>
+        </div>
+
+        <div class="ars-prep-only" id="ars-prep-only">
+          <div class="ars-inspector" id="ars-inspector">
+            <span class="ars-insp-empty">Toque numa peça da grade ou da loja para ver detalhes e sinergias.</span>
+          </div>
+
+          <div class="ars-tray-row">
+            <span class="ars-tray-label">Reserva</span>
+            <div class="ars-tray" id="ars-tray"></div>
+          </div>
+
+          <div class="ars-shop-head">
+            <span class="ars-sec-title">Loja da Barraca</span>
+            <button type="button" class="btn ghost small" data-act="reroll" id="btn-reroll">Atualizar (2 Ouro)</button>
+          </div>
+          <div class="ars-shop" id="ars-shop"></div>
+        </div>
+      </section>
+
+      <div class="home-links">
+        <button type="button" class="btn small ghost" data-act="rules" id="btn-bottom-rules">Como joga &amp; Peças</button>
+        <button type="button" class="btn small ghost" data-act="about" id="btn-bottom-about">Sobre e créditos</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="ars-drag-ghost" class="ars-drag-ghost hidden" aria-hidden="true"></div>
+  <div id="modal-root"></div>
+  <div id="fx"></div>
+  <div id="toasts" role="status" aria-live="polite"></div>
+
+  <script type="module" src="/arsenal-da-quermesse/js/main.js"></script>
+</body>
+</html>

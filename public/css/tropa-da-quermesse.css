@@ -1,0 +1,407 @@
+/* Tropa da Quermesse — Corredor 2.5D com 40 fases no Design System de Quermesse Noturna */
+
+.trp-screen {
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(36px + var(--sat)) 12px calc(26px + var(--sab));
+}
+
+.trp-wrap {
+  position: relative;
+  z-index: 1;
+  width: min(460px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 auto;
+}
+
+.trp-topbar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.trp-title-group {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.trp-logo {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(18px, 4.9vw, 25px);
+  line-height: 1;
+  letter-spacing: .02em;
+  color: var(--yellow);
+  -webkit-text-stroke: 1.8px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 2px 2px 0 var(--red), 3px 3px 0 var(--red-2), 4px 4px 0 var(--ink);
+}
+
+.trp-sub {
+  font-family: var(--label);
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.trp-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---------- controles de fase e tema ---------- */
+.trp-controls {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  contain: layout style;
+}
+
+.trp-level-bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.trp-nav-btn {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.trp-level-btn {
+  justify-content: space-between;
+  padding: 7px 12px;
+  background: var(--night-2);
+  color: var(--cream);
+  border: 2px solid var(--ink);
+  border-radius: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  min-width: 0;
+  transition: transform .12s var(--out), border-color .15s;
+}
+
+.trp-level-btn:hover {
+  border-color: var(--yellow);
+}
+
+.trp-level-btn:active {
+  transform: translateY(1px);
+}
+
+.trp-level-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.trp-level-num {
+  font-family: var(--label);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--yellow);
+}
+
+.trp-level-name {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--cream);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.trp-stars-pill {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--night);
+  border: 2px solid var(--ink);
+  font-family: var(--display);
+  font-size: 13px;
+  color: var(--yellow);
+  white-space: nowrap;
+}
+
+.trp-brief-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.trp-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--night);
+  border: 1.5px solid var(--line);
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--cream);
+}
+
+.trp-pill b {
+  color: var(--yellow);
+}
+
+.trp-pill.warn b {
+  color: #ff8e78;
+}
+
+.trp-pill.match {
+  border-color: var(--green);
+  background: rgba(59, 171, 106, .16);
+}
+
+/* ---------- palco 2.5D ---------- */
+.trp-board-panel {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  contain: layout style;
+}
+
+.trp-status-bar {
+  min-height: 28px;
+  padding: 5px 10px;
+  border-radius: 9px;
+  background: var(--night-2);
+  border: 1.5px solid var(--line);
+  font-size: 13px;
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  text-align: center;
+}
+
+.trp-status-bar.win {
+  background: rgba(59, 171, 106, .18);
+  border-color: var(--green);
+  color: #dffae8;
+}
+
+.trp-status-bar.err {
+  background: rgba(229, 72, 47, .18);
+  border-color: var(--red);
+  color: #ffe2dc;
+}
+
+.trp-stage {
+  position: relative;
+  width: min(100%, 400px, 59dvh);
+  aspect-ratio: 400 / 500;
+  margin: 0 auto;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #0d1a28;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .42);
+  contain: layout style paint;
+}
+
+.trp-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: ew-resize;
+  user-select: none;
+}
+
+.trp-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(14, 26, 36, .72);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 4;
+  animation: trp-pop .2s var(--out);
+}
+
+.trp-overlay.hidden {
+  display: none;
+}
+
+@keyframes trp-pop {
+  from { opacity: 0; transform: scale(.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.trp-result-card {
+  width: min(306px, 100%);
+  background: var(--board);
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  padding: 18px 16px;
+  box-shadow: inset 0 0 0 2px var(--line), 0 14px 32px rgba(0, 0, 0, .55);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.trp-result-title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 22px;
+  line-height: 1.1;
+  color: var(--yellow);
+  -webkit-text-stroke: 1.2px var(--ink);
+  paint-order: stroke fill;
+}
+
+.trp-result-title.fail {
+  color: #ff8e78;
+}
+
+.trp-result-stars {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+}
+
+.trp-result-star {
+  color: var(--yellow);
+  filter: drop-shadow(0 2px 0 var(--ink));
+}
+
+.trp-result-star.off {
+  color: #3f5568;
+  opacity: .55;
+}
+
+.trp-result-sub {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--cream);
+  line-height: 1.38;
+}
+
+.trp-result-btns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.trp-result-btns .btn {
+  flex: 1 1 110px;
+}
+
+.trp-action-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* ---------- mapa de 40 fases ---------- */
+.trp-chapters {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 58vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.trp-chap-title {
+  margin: 0 0 6px;
+  font-family: var(--label);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--yellow);
+}
+
+.trp-map-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.trp-lvl-tile {
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: var(--night-2);
+  color: var(--cream);
+  padding: 7px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 14px;
+  transition: transform .12s var(--out), border-color .15s, background .15s;
+}
+
+.trp-lvl-tile:hover {
+  transform: translateY(-1px);
+  border-color: var(--yellow);
+}
+
+.trp-lvl-tile.current {
+  background: #274962;
+  border-color: var(--yellow);
+  box-shadow: 0 0 0 2px rgba(247, 183, 51, .35);
+}
+
+.trp-lvl-tile.done {
+  background: rgba(59, 171, 106, .16);
+}
+
+.trp-tile-stars {
+  display: flex;
+  gap: 2px;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.trp-tile-stars .on { color: var(--yellow); }
+.trp-tile-stars .off { color: #465d70; }
+
+@media (max-width: 420px) {
+  .trp-screen { padding: calc(34px + var(--sat)) 8px calc(22px + var(--sab)); }
+  .trp-level-bar { gap: 5px; }
+  .trp-stars-pill { padding: 4px 7px; font-size: 12.5px; }
+  .trp-map-grid { gap: 5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .trp-overlay { animation: none; }
+}

@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'self'">
+  <title>Estacionamento — 40 Fases Sem Bater | Catapulta Online</title>
+  <meta name="description" content="Tire todos os carros, motos e caminhões do estacionamento na ordem certa sem atingir 3 batidas! 40 fases progressivas no navegador.">
+  <link rel="canonical" href="https://catapulta.online/estacionamento">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Catapulta Online">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:url" content="https://catapulta.online/estacionamento">
+  <meta property="og:title" content="Estacionamento — 40 Fases Sem Bater">
+  <meta property="og:description" content="Desafios de estacionamento com motos, carros, caminhões, cones e muretas. Limite de 3 batidas!">
+  <meta property="og:image" content="https://catapulta.online/og.png">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-16 -16 32 32'><rect x='-12' y='-8' width='24' height='16' rx='5' fill='%23e5482f' stroke='%2314202b' stroke-width='2.4'/><rect x='-6' y='-5' width='12' height='10' rx='2.5' fill='%23ffd2c9' stroke='%2314202b' stroke-width='1.5'/></svg>">
+  <meta name="theme-color" content="#0e1a24">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Barlow+Condensed:wght@600;700&family=Bungee&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/estacionamento.css">
+</head>
+<body>
+  <section id="screen-estacionamento" class="screen pk-screen">
+    <div class="ambient" data-kind="home" aria-hidden="true"></div>
+    <div class="garland" data-bulbs="26"></div>
+
+    <div class="pk-wrap">
+      <!-- Topo -->
+      <header class="pk-topbar">
+        <a class="btn small ghost pk-back" href="/" id="btn-back">← Mini-jogos</a>
+        <div class="pk-title-group">
+          <h1 class="pk-logo">ESTACIONAMENTO</h1>
+          <span class="pk-sub">40 Fases Sem Bater</span>
+        </div>
+        <div class="pk-top-actions">
+          <button class="chip-btn" data-act="mute" id="btn-mute" title="Som" aria-label="Som"></button>
+          <button class="chip-btn" data-act="rules" id="btn-rules" title="Sobre, regras e créditos" aria-label="Sobre, regras e créditos"></button>
+        </div>
+      </header>
+
+      <!-- Seletor de fase + batidas + veículos restantes -->
+      <section class="panel pk-controls" aria-label="Fase e batidas">
+        <div class="pk-level-bar">
+          <button type="button" class="btn small ghost pk-nav-btn" data-act="prev" id="btn-prev" title="Fase anterior" aria-label="Fase anterior">◀</button>
+          <button type="button" class="pk-level-btn" data-act="map" id="btn-level-map" title="Escolher fase (1 a 40)">
+            <span class="pk-level-meta">
+              <span class="pk-level-num" id="pk-level-num">FASE 1 / 40</span>
+              <span class="pk-level-name" id="pk-level-name">Primeira Manobra</span>
+            </span>
+            <span>▾</span>
+          </button>
+          <button type="button" class="btn small ghost pk-nav-btn" data-act="next" id="btn-next" title="Próxima fase" aria-label="Próxima fase">▶</button>
+          <span class="pk-stars-pill" id="pk-total-stars" title="Total de estrelas">★ 0/120</span>
+        </div>
+
+        <div class="pk-meta-row">
+          <div class="pk-crashes" title="Máximo de 3 batidas por fase">
+            <span>Batidas:</span>
+            <span class="pk-crashes-pips" id="pk-crashes-pips">
+              <i class="pk-pip"></i><i class="pk-pip"></i><i class="pk-pip"></i>
+            </span>
+            <b id="pk-crashes-txt">0/3</b>
+          </div>
+          <div class="pk-rem-pill" id="pk-rem-pill">Veículos: <b>0</b></div>
+        </div>
+      </section>
+
+      <!-- Pátio de estacionamento -->
+      <main class="panel pk-board-panel">
+        <div class="pk-status-bar" id="pk-status" role="status" aria-live="polite">
+          Arraste um veículo na direção livre para sair sem bater!
+        </div>
+
+        <div class="pk-stage" id="pk-stage">
+          <canvas class="pk-canvas" id="pk-canvas" width="420" height="420" aria-label="Pátio do Estacionamento"></canvas>
+          <div class="pk-overlay hidden" id="pk-overlay" role="dialog" aria-live="polite">
+            <div class="pk-result-card">
+              <h2 class="pk-result-title" id="pk-res-title">Pátio Limpo!</h2>
+              <div class="pk-result-stars" id="pk-res-stars"></div>
+              <p class="pk-result-sub" id="pk-res-sub"></p>
+              <div class="pk-result-btns">
+                <button type="button" class="btn ghost small" data-act="retry" id="btn-res-retry">Repetir</button>
+                <button type="button" class="btn yellow" data-act="advance" id="btn-res-next">Próxima →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pk-action-bar">
+          <button type="button" class="btn ghost" data-act="hint" id="btn-hint">Dica</button>
+          <button type="button" class="btn yellow" data-act="retry" id="btn-restart">Reiniciar</button>
+        </div>
+      </main>
+
+      <div class="home-links">
+        <button type="button" class="btn small ghost" data-act="rules" id="btn-bottom-rules">Como joga</button>
+        <button type="button" class="btn small ghost" data-act="about" id="btn-bottom-about">Sobre e créditos</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="modal-root"></div>
+  <div id="fx"></div>
+  <div id="toasts" role="status" aria-live="polite"></div>
+
+  <script type="module" src="/estacionamento/js/main.js"></script>
+</body>
+</html>

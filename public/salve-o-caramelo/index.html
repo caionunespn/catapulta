@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'self'">
+  <title>Salve o Caramelo — 40 Fases de Física | Catapulta Online</title>
+  <meta name="description" content="Desenhe uma linha para proteger o vira-lata Caramelo das abelhas furiosas, lava, água e armadilhas por 6 segundos em 40 fases feitas à mão!">
+  <link rel="canonical" href="https://catapulta.online/salve-o-caramelo">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Catapulta Online">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:url" content="https://catapulta.online/salve-o-caramelo">
+  <meta property="og:title" content="Salve o Caramelo — 40 Fases de Física">
+  <meta property="og:description" content="Desenhe barreiras físicas com um traço para proteger o Caramelo em 40 fases progressivas.">
+  <meta property="og:image" content="https://catapulta.online/og.png">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-16 -16 32 32'><ellipse cx='-11' cy='-2' rx='4.5' ry='8' transform='rotate(16 -11 -2)' fill='%23a3551c' stroke='%2314202b' stroke-width='2'/><ellipse cx='11' cy='-2' rx='4.5' ry='8' transform='rotate(-16 11 -2)' fill='%23a3551c' stroke='%2314202b' stroke-width='2'/><circle r='12' fill='%23df8f3c' stroke='%2314202b' stroke-width='2.4'/><ellipse cx='0' cy='4' rx='7.5' ry='5.5' fill='%23f7da9f'/><circle cx='-4' cy='-2' r='1.8' fill='%2314202b'/><circle cx='4' cy='-2' r='1.8' fill='%2314202b'/><ellipse cx='0' cy='2' rx='2.6' ry='1.9' fill='%2314202b'/></svg>">
+  <meta name="theme-color" content="#0e1a24">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Barlow+Condensed:wght@600;700&family=Bungee&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/salve-o-caramelo.css">
+</head>
+<body>
+  <section id="screen-caramelo" class="screen sd-screen">
+    <div class="ambient" data-kind="home" aria-hidden="true"></div>
+    <div class="garland" data-bulbs="26"></div>
+
+    <div class="sd-wrap">
+      <!-- Topo: navegação, título e controles -->
+      <header class="sd-topbar">
+        <a class="btn small ghost sd-back" href="/" id="btn-back">← Mini-jogos</a>
+        <div class="sd-title-group">
+          <h1 class="sd-logo">SALVE O CARAMELO</h1>
+          <span class="sd-sub">40 Fases na Quermesse</span>
+        </div>
+        <div class="sd-top-actions">
+          <button class="chip-btn" data-act="mute" id="btn-mute" title="Som" aria-label="Som"></button>
+          <button class="chip-btn" data-act="rules" id="btn-rules" title="Sobre, regras e créditos" aria-label="Sobre, regras e créditos"></button>
+        </div>
+      </header>
+
+      <!-- Seletor de fase + medidor de tinta com 3 estrelas + cronômetro -->
+      <section class="panel sd-controls" aria-label="Fase e tinta">
+        <div class="sd-level-bar">
+          <button type="button" class="btn small ghost sd-nav-btn" data-act="prev" id="btn-prev" title="Fase anterior" aria-label="Fase anterior">◀</button>
+          <button type="button" class="sd-level-btn" data-act="map" id="btn-level-map" title="Escolher fase (1 a 40)">
+            <span class="sd-level-meta">
+              <span class="sd-level-num" id="sd-level-num">FASE 1 / 40</span>
+              <span class="sd-level-name" id="sd-level-name">Primeiro Enxame</span>
+            </span>
+            <span id="sd-map-caret">▾</span>
+          </button>
+          <button type="button" class="btn small ghost sd-nav-btn" data-act="next" id="btn-next" title="Próxima fase" aria-label="Próxima fase">▶</button>
+          <span class="sd-stars-pill" id="sd-total-stars" title="Total de estrelas">★ 0/120</span>
+        </div>
+
+        <div class="sd-ink-row">
+          <div class="sd-ink-ico" id="sd-pencil-ico" aria-hidden="true"></div>
+          <div class="sd-ink-meter" aria-label="Medidor de tinta e estrelas">
+            <div class="sd-ink-stars" id="sd-ink-stars">
+              <span class="sd-star-mark" data-tier="1">★</span>
+              <span class="sd-star-mark" data-tier="2">★</span>
+              <span class="sd-star-mark" data-tier="3">★</span>
+            </div>
+            <div class="sd-ink-track">
+              <div class="sd-ink-fill" id="sd-ink-fill"></div>
+              <span class="sd-ink-tick t1"></span>
+              <span class="sd-ink-tick t2"></span>
+            </div>
+          </div>
+          <div class="sd-timer-pill" id="sd-timer" title="Tempo para sobreviver">6.0s</div>
+        </div>
+      </section>
+
+      <!-- Arena de desenho + física + ações -->
+      <main class="panel sd-board-panel">
+        <div class="sd-status-bar" id="sd-status" role="status" aria-live="polite">
+          Desenhe uma linha contínua para proteger o Caramelo por 6 segundos.
+        </div>
+
+        <div class="sd-stage" id="sd-stage">
+          <canvas class="sd-canvas" id="sd-canvas" width="360" height="540" aria-label="Arena de Salve o Caramelo"></canvas>
+          <div class="sd-overlay hidden" id="sd-overlay" role="dialog" aria-live="polite">
+            <div class="sd-result-card">
+              <h2 class="sd-result-title" id="sd-res-title">Caramelo Salvo!</h2>
+              <div class="sd-result-stars" id="sd-res-stars"></div>
+              <p class="sd-result-sub" id="sd-res-sub"></p>
+              <div class="sd-result-btns">
+                <button type="button" class="btn ghost small" data-act="retry" id="btn-res-retry">Repetir</button>
+                <button type="button" class="btn yellow" data-act="advance" id="btn-res-next">Próxima →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sd-action-bar">
+          <button type="button" class="btn ghost" data-act="hint" id="btn-hint">Dica</button>
+          <button type="button" class="btn yellow" data-act="retry" id="btn-restart">Reiniciar</button>
+        </div>
+      </main>
+
+      <div class="home-links">
+        <button type="button" class="btn small ghost" data-act="rules" id="btn-bottom-rules">Como joga</button>
+        <button type="button" class="btn small ghost" data-act="about" id="btn-bottom-about">Sobre e créditos</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="modal-root"></div>
+  <div id="fx"></div>
+  <div id="toasts" role="status" aria-live="polite"></div>
+
+  <script type="module" src="/salve-o-caramelo/js/main.js"></script>
+</body>
+</html>

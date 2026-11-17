@@ -1,0 +1,441 @@
+/* Estacionamento (Parking Jam) — 40 fases no Design System de Quermesse Noturna */
+
+.pk-screen {
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: calc(36px + var(--sat)) 12px calc(26px + var(--sab));
+}
+
+.pk-wrap {
+  position: relative;
+  z-index: 1;
+  width: min(460px, 100%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0 auto;
+}
+
+/* ---------- cabeçalho ---------- */
+.pk-topbar {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+}
+
+.pk-title-group {
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+}
+
+.pk-logo {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 400;
+  font-size: clamp(19px, 5.4vw, 27px);
+  line-height: 1;
+  letter-spacing: .02em;
+  color: var(--yellow);
+  -webkit-text-stroke: 1.8px var(--ink);
+  paint-order: stroke fill;
+  text-shadow: 2px 2px 0 var(--red), 3px 3px 0 var(--red-2), 4px 4px 0 var(--ink);
+}
+
+.pk-sub {
+  font-family: var(--label);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: .09em;
+  text-transform: uppercase;
+  color: var(--mute);
+}
+
+.pk-top-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* ---------- controles de fase e batidas ---------- */
+.pk-controls {
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  contain: layout style;
+}
+
+.pk-level-bar {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 8px;
+}
+
+.pk-nav-btn {
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+.pk-level-btn {
+  justify-content: space-between;
+  padding: 7px 12px;
+  background: var(--night-2);
+  color: var(--cream);
+  border: 2px solid var(--ink);
+  border-radius: 11px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-shadow: inset 0 0 0 1.5px var(--line);
+  transition: transform .12s var(--out), border-color .15s;
+  min-width: 0;
+}
+
+.pk-level-btn:hover {
+  border-color: var(--yellow);
+  transform: translateY(-1px);
+}
+
+.pk-level-meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+.pk-level-num {
+  font-family: var(--label);
+  font-weight: 700;
+  font-size: 11.5px;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: var(--yellow);
+  line-height: 1.05;
+}
+
+.pk-level-name {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--cream);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.pk-stars-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: var(--night);
+  border: 1.5px solid var(--line);
+  font-family: var(--label);
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--yellow);
+  white-space: nowrap;
+}
+
+.pk-meta-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.pk-crashes {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--night);
+  border: 1.5px solid var(--line);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.pk-crashes-pips {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pk-pip {
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  background: var(--green);
+  transition: background .15s, transform .15s;
+}
+
+.pk-pip.hit {
+  background: var(--red);
+  transform: scale(1.1);
+}
+
+.pk-rem-pill {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--night);
+  border: 1.5px solid var(--line);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--cream);
+}
+
+.pk-rem-pill b {
+  color: var(--yellow);
+}
+
+/* ---------- tabuleiro ---------- */
+.pk-board-panel {
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  contain: layout style;
+}
+
+.pk-status-bar {
+  min-height: 28px;
+  padding: 5px 10px;
+  border-radius: 9px;
+  background: var(--night-2);
+  border: 1.5px solid var(--line);
+  font-size: 13px;
+  color: var(--cream);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  text-align: center;
+}
+
+.pk-status-bar.win {
+  background: rgba(59, 171, 106, .18);
+  border-color: var(--green);
+  color: #dffae8;
+}
+
+.pk-status-bar.err {
+  background: rgba(229, 72, 47, .18);
+  border-color: var(--red);
+  color: #ffe2dc;
+}
+
+.pk-stage {
+  position: relative;
+  width: min(100%, 420px, 56dvh);
+  aspect-ratio: 1;
+  margin: 0 auto;
+  border: 3px solid var(--ink);
+  border-radius: 14px;
+  overflow: hidden;
+  background: #202d3a;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .42);
+  contain: layout style paint;
+}
+
+.pk-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  touch-action: none;
+  cursor: grab;
+  user-select: none;
+}
+
+.pk-canvas:active {
+  cursor: grabbing;
+}
+
+.pk-overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(14, 26, 36, .66);
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  z-index: 4;
+  animation: pk-pop .2s var(--out);
+}
+
+.pk-overlay.hidden {
+  display: none;
+}
+
+@keyframes pk-pop {
+  from { opacity: 0; transform: scale(.96); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+.pk-result-card {
+  width: min(300px, 100%);
+  background: var(--board);
+  border: 3px solid var(--ink);
+  border-radius: 18px;
+  padding: 18px 16px;
+  box-shadow: inset 0 0 0 2px var(--line), 0 14px 32px rgba(0, 0, 0, .55);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+}
+
+.pk-result-title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 22px;
+  line-height: 1.1;
+  color: var(--yellow);
+  -webkit-text-stroke: 1.2px var(--ink);
+  paint-order: stroke fill;
+}
+
+.pk-result-title.fail {
+  color: #ff8e78;
+}
+
+.pk-result-stars {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+}
+
+.pk-result-star {
+  color: var(--yellow);
+  filter: drop-shadow(0 2px 0 var(--ink));
+}
+
+.pk-result-star.off {
+  color: #3f5568;
+  opacity: .55;
+}
+
+.pk-result-sub {
+  margin: 0;
+  font-size: 13.5px;
+  color: var(--cream);
+  line-height: 1.35;
+}
+
+.pk-result-btns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  margin-top: 4px;
+}
+
+.pk-result-btns .btn {
+  flex: 1 1 110px;
+}
+
+.pk-action-bar {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* ---------- mapa de 40 fases ---------- */
+.pk-chapters {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  max-height: 58vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.pk-chap-title {
+  margin: 0 0 6px;
+  font-family: var(--label);
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: .07em;
+  text-transform: uppercase;
+  color: var(--yellow);
+}
+
+.pk-map-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.pk-lvl-tile {
+  border: 2px solid var(--ink);
+  border-radius: 10px;
+  background: var(--night-2);
+  color: var(--cream);
+  padding: 7px 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  cursor: pointer;
+  font-family: var(--display);
+  font-size: 14px;
+  transition: transform .12s var(--out), border-color .15s, background .15s;
+}
+
+.pk-lvl-tile:hover {
+  transform: translateY(-1px);
+  border-color: var(--yellow);
+}
+
+.pk-lvl-tile.current {
+  background: #274962;
+  border-color: var(--yellow);
+  box-shadow: 0 0 0 2px rgba(247, 183, 51, .35);
+}
+
+.pk-lvl-tile.done {
+  background: rgba(59, 171, 106, .16);
+}
+
+.pk-tile-stars {
+  display: flex;
+  gap: 2px;
+  font-size: 10px;
+  line-height: 1;
+}
+
+.pk-tile-stars .on {
+  color: var(--yellow);
+}
+
+.pk-tile-stars .off {
+  color: #465d70;
+}
+
+@media (max-width: 420px) {
+  .pk-screen { padding: calc(34px + var(--sat)) 8px calc(22px + var(--sab)); }
+  .pk-level-bar { gap: 5px; }
+  .pk-stars-pill { padding: 4px 7px; font-size: 12.5px; }
+  .pk-map-grid { gap: 5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pk-overlay { animation: none; }
+}

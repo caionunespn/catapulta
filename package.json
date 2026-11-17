@@ -7,7 +7,7 @@
   "scripts": {
     "start": "node server/index.js",
     "start:private": "node server/index.js --key=auto",
-    "test": "node test/sim.js && node test/security.js"
+    "test": "node test/sim.js && node test/security.js && node test/caramelo-bot.js && node test/arsenal-bot.js"
   },
   "dependencies": {
     "ws": "^8.18.0"

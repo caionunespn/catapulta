@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; object-src 'none'; base-uri 'self'">
+  <title>Tropa da Quermesse — 40 Fases na Passarela | Catapulta Online</title>
+  <meta name="description" content="Comande seu bonde na passarela da quermesse! Escolha portais de tropa (+ e ×), vista o traje do tema, carregue fogos e vença a Rival no Coreto em 40 fases.">
+  <link rel="canonical" href="https://catapulta.online/tropa-da-quermesse">
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="Catapulta Online">
+  <meta property="og:locale" content="pt_BR">
+  <meta property="og:url" content="https://catapulta.online/tropa-da-quermesse">
+  <meta property="og:title" content="Tropa da Quermesse — 40 Fases na Passarela">
+  <meta property="og:description" content="Portais + e ×, troca de trajes temáticos, serras, lama e duelo contra a Rival no Coreto em 40 fases!">
+  <meta property="og:image" content="https://catapulta.online/og.png">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='-16 -16 32 32'><circle cx='0' cy='2' r='10' fill='%23f7b733' stroke='%2314202b' stroke-width='2.2'/><path d='M-7-6l3-5 4 4 4-4 3 5Z' fill='%23e5482f' stroke='%2314202b' stroke-width='1.8'/></svg>">
+  <meta name="theme-color" content="#0e1a24">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@500;600;700&family=Barlow+Condensed:wght@600;700&family=Bungee&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/tropa-da-quermesse.css">
+</head>
+<body>
+  <section id="screen-tropa" class="screen trp-screen">
+    <div class="ambient" data-kind="home" aria-hidden="true"></div>
+    <div class="garland" data-bulbs="26"></div>
+
+    <div class="trp-wrap">
+      <header class="trp-topbar">
+        <a class="btn small ghost trp-back" href="/" id="btn-back">← Mini-jogos</a>
+        <div class="trp-title-group">
+          <h1 class="trp-logo">TROPA DA QUERMESSE</h1>
+          <span class="trp-sub">Passarela &amp; Duelo · 40 Fases</span>
+        </div>
+        <div class="trp-top-actions">
+          <button class="chip-btn" data-act="mute" id="btn-mute" title="Som" aria-label="Som"></button>
+          <button class="chip-btn" data-act="rules" id="btn-rules" title="Sobre, regras e créditos" aria-label="Sobre, regras e créditos"></button>
+        </div>
+      </header>
+
+      <section class="panel trp-controls" aria-label="Fase, tema e meta">
+        <div class="trp-level-bar">
+          <button type="button" class="btn small ghost trp-nav-btn" data-act="prev" id="btn-prev" title="Fase anterior" aria-label="Fase anterior">◀</button>
+          <button type="button" class="trp-level-btn" data-act="map" id="btn-level-map" title="Escolher fase (1 a 40)">
+            <span class="trp-level-meta">
+              <span class="trp-level-num" id="trp-level-num">FASE 1 / 40</span>
+              <span class="trp-level-name" id="trp-level-name">Portais da Entrada</span>
+            </span>
+            <span>▾</span>
+          </button>
+          <button type="button" class="btn small ghost trp-nav-btn" data-act="next" id="btn-next" title="Próxima fase" aria-label="Próxima fase">▶</button>
+          <span class="trp-stars-pill" id="trp-total-stars" title="Total de estrelas">★ 0/120</span>
+        </div>
+
+        <div class="trp-brief-row">
+          <span class="trp-pill" id="trp-theme-pill">Tema: <b>Junino</b></span>
+          <span class="trp-pill warn hidden" id="trp-avoid-pill">Evite: <b>Rock</b></span>
+          <span class="trp-pill" id="trp-rival-pill">Rival: <b>22</b></span>
+        </div>
+      </section>
+
+      <main class="panel trp-board-panel">
+        <div class="trp-status-bar" id="trp-status" role="status" aria-live="polite">
+          Deslize na pista ou aperte Correr!
+        </div>
+
+        <div class="trp-stage" id="trp-stage">
+          <canvas class="trp-canvas" id="trp-canvas" width="400" height="500" aria-label="Passarela da Tropa da Quermesse"></canvas>
+          <div class="trp-overlay hidden" id="trp-overlay" role="dialog" aria-live="polite">
+            <div class="trp-result-card">
+              <h2 class="trp-result-title" id="trp-res-title">Vitória no Coreto!</h2>
+              <div class="trp-result-stars" id="trp-res-stars"></div>
+              <p class="trp-result-sub" id="trp-res-sub"></p>
+              <div class="trp-result-btns">
+                <button type="button" class="btn ghost small" data-act="retry" id="btn-res-retry">Repetir</button>
+                <button type="button" class="btn yellow" data-act="advance" id="btn-res-next">Próxima →</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="trp-action-bar">
+          <button type="button" class="btn ghost" data-act="hint" id="btn-hint">Dica</button>
+          <button type="button" class="btn yellow" data-act="start-or-retry" id="btn-primary">Correr!</button>
+        </div>
+      </main>
+
+      <div class="home-links">
+        <button type="button" class="btn small ghost" data-act="rules" id="btn-bottom-rules">Como joga</button>
+        <button type="button" class="btn small ghost" data-act="about" id="btn-bottom-about">Sobre e créditos</button>
+      </div>
+    </div>
+  </section>
+
+  <div id="modal-root"></div>
+  <div id="fx"></div>
+  <div id="toasts" role="status" aria-live="polite"></div>
+
+  <script type="module" src="/tropa-da-quermesse/js/main.js"></script>
+</body>
+</html>

@@ -486,6 +486,198 @@ function buildPalavraScene() {
   el.innerHTML = svg;
 }
 
+function buildSalveCarameloScene() {
+  const el = $('#booth-scene-salve-caramelo');
+  if (!el) return;
+
+  // Cena limpa sem sobreposições: colmeia à esquerda, Caramelo sob cúpula no centro e abelhas à direita
+  const svg =
+    `<svg viewBox="-190 -72 380 144" preserveAspectRatio="xMidYMid meet" aria-hidden="true">` +
+    `<g transform="translate(-128,-6)">` +
+    `<ellipse cy="-14" rx="14" ry="5.5" fill="#f7c843" stroke="#14202b" stroke-width="2"/>` +
+    `<ellipse cy="-6" rx="19" ry="6.5" fill="#f0b12b" stroke="#14202b" stroke-width="2"/>` +
+    `<ellipse cy="3" rx="22" ry="7.5" fill="#f7c843" stroke="#14202b" stroke-width="2"/>` +
+    `<ellipse cy="12" rx="18" ry="6" fill="#e09a1e" stroke="#14202b" stroke-width="2"/>` +
+    `<ellipse cx="2" cy="4" rx="7" ry="8.5" fill="#2d1608" stroke="#14202b" stroke-width="1.8"/>` +
+    `</g>` +
+    `<rect x="-78" y="34" width="156" height="24" rx="6" fill="#cf7e4b" stroke="#14202b" stroke-width="2.4"/>` +
+    `<rect x="-78" y="34" width="156" height="8" rx="4" fill="#70c93a" stroke="#14202b" stroke-width="2.2"/>` +
+    `<path d="M-48 31 V-14 Q-48-40 0-40 Q48-40 48-14 V31" fill="none" stroke="#14202b" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>` +
+    `<path d="M-48 31 V-14 Q-48-40 0-40 Q48-40 48-14 V31" fill="none" stroke="#3d7be0" stroke-width="5.5" stroke-linecap="round" stroke-linejoin="round"/>` +
+    // Vira-lata Caramelo com orelhas caídas e coleira vermelha dentro do arco
+    `<g transform="translate(0,11)">` +
+    `<ellipse cx="-18" cy="-1" rx="6.5" ry="11.5" transform="rotate(14 -18 -1)" fill="#a3551c" stroke="#14202b" stroke-width="2.2"/>` +
+    `<ellipse cx="18" cy="-1" rx="6.5" ry="11.5" transform="rotate(-14 18 -1)" fill="#a3551c" stroke="#14202b" stroke-width="2.2"/>` +
+    `<circle r="19" fill="#df8f3c" stroke="#14202b" stroke-width="2.4"/>` +
+    `<ellipse cy="6.5" rx="13.5" ry="9.5" fill="#f7da9f"/>` +
+    `<rect x="-10" y="14" width="20" height="4.5" rx="2" fill="#e5482f" stroke="#14202b" stroke-width="1.6"/>` +
+    `<circle cy="17.5" r="2.6" fill="#f7b733" stroke="#14202b" stroke-width="1.3"/>` +
+    `<rect x="-14" y="-8" width="12" height="7.5" rx="2.5" fill="#14202b"/>` +
+    `<rect x="2" y="-8" width="12" height="7.5" rx="2.5" fill="#14202b"/>` +
+    `<rect x="-2" y="-6" width="4" height="2.4" fill="#14202b"/>` +
+    `<ellipse cy="2.5" rx="4" ry="2.7" fill="#14202b"/>` +
+    `<path d="M-5 6.5q5 4.5 10 0" fill="none" stroke="#14202b" stroke-width="2" stroke-linecap="round"/>` +
+    `</g>` +
+    `<g transform="translate(122,-18)">` +
+    `<ellipse cx="2" cy="-8" rx="4.5" ry="6.5" fill="#fff8ea" stroke="#14202b" stroke-width="1.5" opacity=".9"/>` +
+    `<ellipse rx="9.5" ry="7" fill="#f7c843" stroke="#14202b" stroke-width="2"/>` +
+    `<rect x="-4" y="-6" width="3" height="12" fill="#14202b"/><rect x="1.5" y="-6" width="3" height="12" fill="#14202b"/>` +
+    `<circle cx="-5.5" cy="-1.5" r="2" fill="#14202b"/>` +
+    `</g>` +
+    `<g transform="translate(148,18) scale(0.85)">` +
+    `<ellipse cx="2" cy="-8" rx="4.5" ry="6.5" fill="#fff8ea" stroke="#14202b" stroke-width="1.5" opacity=".9"/>` +
+    `<ellipse rx="9.5" ry="7" fill="#f7c843" stroke="#14202b" stroke-width="2"/>` +
+    `<rect x="-4" y="-6" width="3" height="12" fill="#14202b"/><rect x="1.5" y="-6" width="3" height="12" fill="#14202b"/>` +
+    `<circle cx="-5.5" cy="-1.5" r="2" fill="#14202b"/>` +
+    `</g>` +
+    `</svg>`;
+
+  el.innerHTML = svg;
+}
+
+function buildEstacionamentoScene() {
+  const el = $('#booth-scene-estacionamento');
+  if (!el) return;
+
+  // Cena de pátio vista de cima sem sobreposição: caminhão vertical, carro saindo, moto e cones
+  const svg =
+    `<svg viewBox="-190 -72 380 144" preserveAspectRatio="xMidYMid meet" aria-hidden="true">` +
+    `<rect x="-156" y="-56" width="312" height="112" rx="12" fill="#2d3f51" stroke="#14202b" stroke-width="2.6"/>` +
+    `<path d="M-142 0 H142 M-42-48 V48 M42-48 V48" stroke="rgba(246,232,200,0.18)" stroke-width="1.5" stroke-dasharray="6 5"/>` +
+    `<rect x="-32" y="46" width="64" height="8" rx="3" fill="#f7b733" stroke="#14202b" stroke-width="2"/>` +
+    `<g transform="translate(-96,0)">` +
+    `<rect x="-18" y="-42" width="36" height="54" rx="5" fill="#f6e8c8" stroke="#14202b" stroke-width="2.2"/>` +
+    `<rect x="-13" y="-37" width="26" height="44" rx="3" fill="#1fae96"/>` +
+    `<rect x="-17" y="15" width="34" height="24" rx="6" fill="#1fae96" stroke="#14202b" stroke-width="2.2"/>` +
+    `<rect x="-12" y="25" width="24" height="9" rx="2.5" fill="#b9dcff" stroke="#14202b" stroke-width="1.5"/>` +
+    `</g>` +
+    `<g transform="translate(8,-24)">` +
+    `<rect x="-36" y="-15" width="72" height="30" rx="9" fill="#e5482f" stroke="#14202b" stroke-width="2.2"/>` +
+    `<rect x="-18" y="-10" width="38" height="20" rx="5" fill="#1c3144"/>` +
+    `<rect x="-8" y="-8.5" width="18" height="17" rx="3.5" fill="#ffd2c9"/>` +
+    `<circle cx="32" cy="-9" r="2.6" fill="#ffe57a"/><circle cx="32" cy="9" r="2.6" fill="#ffe57a"/>` +
+    `</g>` +
+    `<path d="M56-24h42l-7-7m7 7-7 7" fill="none" stroke="#f7b733" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>` +
+    `<g transform="translate(-8,24)">` +
+    `<rect x="-15" y="-20" width="30" height="40" rx="8" fill="#3d7be0" stroke="#14202b" stroke-width="2.2"/>` +
+    `<rect x="-10" y="-10" width="20" height="20" rx="4" fill="#1c3144"/>` +
+    `</g>` +
+    `<g transform="translate(92,22)">` +
+    `<rect x="-20" y="-7" width="40" height="14" rx="6" fill="#f7b733" stroke="#14202b" stroke-width="2"/>` +
+    `<line x1="10" y1="-11" x2="10" y2="11" stroke="#14202b" stroke-width="3" stroke-linecap="round"/>` +
+    `<circle cx="17" cy="0" r="2.8" fill="#ffe57a"/>` +
+    `</g>` +
+    `<rect x="108" y="-48" width="42" height="16" rx="4" fill="#3bab6a" stroke="#14202b" stroke-width="1.8"/>` +
+    `<text x="129" y="-37" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-weight="700" font-size="10" fill="#fff8ea">SAÍDA ▶</text>` +
+    `</svg>`;
+
+  el.innerHTML = svg;
+}
+
+function buildTropaQuermesseScene() {
+  const el = $('#booth-scene-tropa-quermesse');
+  if (!el) return;
+
+  const runner = (x, y, fill, crown = false) =>
+    `<g transform="translate(${x},${y})">` +
+    `<ellipse cx="0" cy="11" rx="8" ry="3" fill="rgba(0,0,0,0.32)"/>` +
+    `<rect x="-6.5" y="-5" width="13" height="15" rx="5" fill="${fill}" stroke="#14202b" stroke-width="2"/>` +
+    `<circle cx="0" cy="-10" r="6" fill="#ffe0be" stroke="#14202b" stroke-width="2"/>` +
+    (crown
+      ? `<path d="M-5-14l2.5-5 2.5 3.5 2.5-3.5 2.5 5Z" fill="#ffd75e" stroke="#14202b" stroke-width="1.4"/>`
+      : `<ellipse cx="0" cy="-14.5" rx="8" ry="2.4" fill="#ffd166" stroke="#14202b" stroke-width="1.4"/>`) +
+    `</g>`;
+
+  const svg =
+    `<svg viewBox="-160 -70 320 140" aria-hidden="true">` +
+    `<defs>` +
+    `<linearGradient id="trp-road" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#253b52"/><stop offset="1" stop-color="#45617d"/></linearGradient>` +
+    `</defs>` +
+    `<polygon points="-38,-62 38,-62 128,68 -128,68" fill="url(#trp-road)" stroke="#f7b733" stroke-width="2.5"/>` +
+    `<line x1="0" y1="-60" x2="0" y2="66" stroke="rgba(255,248,234,0.22)" stroke-width="2" stroke-dasharray="6 6"/>` +
+    // Portal vermelho esquerda (-6) e verde direita (×2)
+    `<g transform="translate(-44,-14)">` +
+    `<rect x="-32" y="-34" width="64" height="50" rx="8" fill="#d93d2b" fill-opacity="0.72" stroke="#14202b" stroke-width="2.4"/>` +
+    `<rect x="-29" y="-31" width="58" height="44" rx="6" fill="none" stroke="#ff826c" stroke-width="1.8"/>` +
+    `<text x="0" y="-4" text-anchor="middle" font-family="Bungee, sans-serif" font-size="16" fill="#fffaf0" stroke="#14202b" stroke-width="2.2" paint-order="stroke">-6</text>` +
+    `</g>` +
+    `<g transform="translate(44,-14)">` +
+    `<rect x="-32" y="-34" width="64" height="50" rx="8" fill="#27b868" fill-opacity="0.78" stroke="#14202b" stroke-width="2.4"/>` +
+    `<rect x="-29" y="-31" width="58" height="44" rx="6" fill="none" stroke="#6df0a4" stroke-width="1.8"/>` +
+    `<text x="0" y="-11" text-anchor="middle" font-family="Bungee, sans-serif" font-size="16" fill="#fffaf0" stroke="#14202b" stroke-width="2.2" paint-order="stroke">×2</text>` +
+    `<text x="0" y="7" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-weight="700" font-size="9.5" fill="#ffd75e">GALA</text>` +
+    `</g>` +
+    // Tropa correndo na frente direita
+    runner(28, 34, '#f7b733', true) +
+    runner(48, 30, '#e5482f', false) +
+    runner(64, 38, '#1fae96', true) +
+    runner(42, 46, '#ffd75e', true) +
+    // Barra de poder
+    `<rect x="-148" y="-56" width="70" height="20" rx="6" fill="#14202b" stroke="#f7b733" stroke-width="1.6"/>` +
+    `<text x="-113" y="-43" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-weight="700" font-size="10.5" fill="#f7b733">TEMA ×1.6 ★</text>` +
+    `</svg>`;
+
+  el.innerHTML = svg;
+}
+
+function buildArsenalQuermesseScene() {
+  const el = $('#booth-scene-arsenal-quermesse');
+  if (!el) return;
+
+  const cs = 28;
+  const ox = -142;
+  const oy = -44;
+
+  // Grade 4x3 compacta à esquerda mostrando peças encaixadas + fusão brilhante
+  let grid = `<rect x="${ox - 4}" y="${oy - 4}" width="${cs * 4 + 8}" height="${cs * 3 + 8}" rx="8" fill="#14202b"/>`;
+  for (let r = 0; r < 3; r++) {
+    for (let c = 0; c < 4; c++) {
+      grid += `<rect x="${ox + c * cs + 1}" y="${oy + r * cs + 1}" width="${cs - 2}" height="${cs - 2}" rx="4" fill="#132635" stroke="#223d50" stroke-width="1"/>`;
+    }
+  }
+  // Escudo 1x1 (0,0)
+  grid += `<rect x="${ox + 2}" y="${oy + 2}" width="${cs - 4}" height="${cs - 4}" rx="5" fill="#1e3963" stroke="#3d7be0" stroke-width="2"/>`;
+  grid += `<path d="M${ox + 8} ${oy + 7} L${ox + 14} ${oy + 5} L${ox + 20} ${oy + 7} V${oy + 15} C${ox + 20} ${oy + 19} ${ox + 14} ${oy + 22} ${ox + 14} ${oy + 22} C${ox + 14} ${oy + 22} ${ox + 8} ${oy + 19} ${ox + 8} ${oy + 15} Z" fill="#3d7be0" stroke="#14202b" stroke-width="1.5"/>`;
+
+  // Bruxa 2x1 (1..2, 0) com brilho dourado de fusão Nv.2
+  grid += `<rect x="${ox + cs + 2}" y="${oy + 2}" width="${cs * 2 - 4}" height="${cs - 4}" rx="5" fill="#1e4b3d" stroke="#6df0a4" stroke-width="2"/>`;
+  grid += `<path d="M${ox + cs + 9} ${oy + 20} H${ox + cs + 23} L${ox + cs + 16} ${oy + 6} Z" fill="#9d5cf0" stroke="#14202b" stroke-width="1.5"/>`;
+  grid += `<circle cx="${ox + cs * 2 + 12}" cy="${oy + 16}" r="7" fill="#6df0a4" stroke="#14202b" stroke-width="1.5"/>`;
+
+  // Espada 3x1 (0..2, 1)
+  grid += `<rect x="${ox + 2}" y="${oy + cs + 2}" width="${cs * 3 - 4}" height="${cs - 4}" rx="5" fill="#4e3c16" stroke="#f7b733" stroke-width="2"/>`;
+  grid += `<rect x="${ox + 8}" y="${oy + cs + 11}" width="12" height="5" rx="2" fill="#8a5a34" stroke="#14202b" stroke-width="1.4"/>`;
+  grid += `<rect x="${ox + 20}" y="${oy + cs + 6}" width="4" height="15" rx="1.5" fill="#f7b733" stroke="#14202b" stroke-width="1.4"/>`;
+  grid += `<path d="M${ox + 24} ${oy + cs + 10} H${ox + 68} L${ox + 77} ${oy + cs + 13.5} L${ox + 68} ${oy + cs + 17} H${ox + 24} Z" fill="#dbe4ee" stroke="#14202b" stroke-width="1.4"/>`;
+
+  // Tomo 2x1 (2..3, 2)
+  grid += `<rect x="${ox + cs * 2 + 2}" y="${oy + cs * 2 + 2}" width="${cs * 2 - 4}" height="${cs - 4}" rx="5" fill="#1e3963" stroke="#78b4ff" stroke-width="2"/>`;
+  grid += `<rect x="${ox + cs * 2 + 10}" y="${oy + cs * 2 + 6}" width="36" height="16" rx="3" fill="#f6e8c8" stroke="#14202b" stroke-width="1.5"/>`;
+  grid += `<line x1="${ox + cs * 2 + 28}" y1="${oy + cs * 2 + 6}" x2="${ox + cs * 2 + 28}" y2="${oy + cs * 2 + 22}" stroke="#14202b" stroke-width="1.5"/>`;
+
+  // Cena de batalha à direita: Muralha + raio arcano + Diabretes e Ogro marchando
+  const svg =
+    `<svg viewBox="-160 -70 320 140" aria-hidden="true">` +
+    grid +
+    // Seta / Raio de disparo da grade para a arena
+    `<path d="M-18 -8 L24 -16 L18 -4 L46 -12" fill="none" stroke="#ffd75e" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/>` +
+    `<circle cx="48" cy="-12" r="5" fill="#6df0a4" stroke="#14202b" stroke-width="1.6"/>` +
+    // Muralha mini à direita da grade
+    `<rect x="0" y="-42" width="14" height="86" rx="4" fill="#263f54" stroke="#14202b" stroke-width="2"/>` +
+    `<rect x="9" y="-36" width="6" height="18" fill="#e5482f" stroke="#14202b" stroke-width="1.2"/>` +
+    `<rect x="9" y="-12" width="6" height="18" fill="#f7b733" stroke="#14202b" stroke-width="1.2"/>` +
+    `<rect x="9" y="12" width="6" height="18" fill="#e5482f" stroke="#14202b" stroke-width="1.2"/>` +
+    // Inimigos marchando
+    `<g transform="translate(68,-10)"><circle r="11" fill="#43b06c" stroke="#14202b" stroke-width="2"/><circle cx="-4" cy="-2" r="2" fill="#fff8ea"/><circle cx="1" cy="-2" r="2" fill="#fff8ea"/></g>` +
+    `<g transform="translate(106,14)"><circle r="15" fill="#8f9fb0" stroke="#14202b" stroke-width="2.2"/><path d="M-13-2 A13 13 0 0 1 13-2 Z" fill="#b8c7d8" stroke="#14202b" stroke-width="1.6"/><circle cx="-5" cy="1" r="2.3" fill="#fff8ea"/><circle cx="1" cy="1" r="2.3" fill="#fff8ea"/></g>` +
+    `<g transform="translate(124,-24)"><path d="M-12-2 Q-18-10 -6-4 M12-2 Q18-10 6-4" stroke="#e0569d" stroke-width="3" stroke-linecap="round" fill="none"/><circle r="8" fill="#7355b8" stroke="#14202b" stroke-width="1.8"/></g>` +
+    `<rect x="44" y="-56" width="96" height="19" rx="6" fill="#14202b" stroke="#6df0a4" stroke-width="1.6"/>` +
+    `<text x="92" y="-43" text-anchor="middle" font-family="Barlow Condensed, sans-serif" font-weight="700" font-size="10.5" fill="#6df0a4">SOMAR + FUNDIR ★★★</text>` +
+    `</svg>`;
+
+  el.innerHTML = svg;
+}
+
 function aboutModal() {
   return `<div class="modal" data-kind="rules" role="dialog" aria-modal="true">
     <h2>Sobre e créditos</h2>
@@ -532,6 +724,10 @@ buildSerpentinaScene();
 buildRetalhosScene();
 buildSudokuScene();
 buildPalavraScene();
+buildSalveCarameloScene();
+buildEstacionamentoScene();
+buildTropaQuermesseScene();
+buildArsenalQuermesseScene();
 
 const featsCat = $('#booth-feats-catapulta');
 if (featsCat) {
@@ -596,6 +792,42 @@ if (featsPL) {
     `<span class="booth-pill">${ico('crown', 's')}Português</span>`;
 }
 
+const featsSD = $('#booth-feats-salve-caramelo');
+if (featsSD) {
+  featsSD.innerHTML =
+    `<span class="booth-pill">${ico('star', 's')}40 fases</span>` +
+    `<span class="booth-pill">${ico('hand', 's')}Desenho livre</span>` +
+    `<span class="booth-pill">${ico('bolt', 's')}Física 2D real</span>` +
+    `<span class="booth-pill">${ico('crown', 's')}Até 3 estrelas</span>`;
+}
+
+const featsPK = $('#booth-feats-estacionamento');
+if (featsPK) {
+  featsPK.innerHTML =
+    `<span class="booth-pill">${ico('star', 's')}40 fases</span>` +
+    `<span class="booth-pill">${ico('bolt', 's')}Motos a Caminhões</span>` +
+    `<span class="booth-pill">${ico('nope', 's')}Até 3 batidas</span>` +
+    `<span class="booth-pill">${ico('bulb', 's')}Dica lógica</span>`;
+}
+
+const featsTR = $('#booth-feats-tropa-quermesse');
+if (featsTR) {
+  featsTR.innerHTML =
+    `<span class="booth-pill">${ico('star', 's')}40 fases</span>` +
+    `<span class="booth-pill">${ico('bolt', 's')}Portais + e ×</span>` +
+    `<span class="booth-pill">${ico('crown', 's')}Trajes ×1.6</span>` +
+    `<span class="booth-pill">${ico('check', 's')}Duelo no Coreto</span>`;
+}
+
+const featsAR = $('#booth-feats-arsenal-quermesse');
+if (featsAR) {
+  featsAR.innerHTML =
+    `<span class="booth-pill">${ico('star', 's')}40 fases</span>` +
+    `<span class="booth-pill">${ico('bolt', 's')}10 Peças &amp; Sinergias</span>` +
+    `<span class="booth-pill">${ico('crown', 's')}Fusões até Nv.5</span>` +
+    `<span class="booth-pill">${ico('check', 's')}Hordas &amp; Chefões</span>`;
+}
+
 const playCat = $('#btn-play-catapulta');
 if (playCat) {
   if (location.search) playCat.href = '/catapulta' + location.search;
@@ -630,6 +862,26 @@ if (playSK) {
 const playPL = $('#btn-play-palavra');
 if (playPL) {
   playPL.innerHTML = `${ico('bulb', 'l')}<span>Jogar Palavra</span>${ico('next', 's')}`;
+}
+
+const playSD = $('#btn-play-salve-caramelo');
+if (playSD) {
+  playSD.innerHTML = `${ico('star', 'l')}<span>Jogar Salve o Caramelo</span>${ico('next', 's')}`;
+}
+
+const playPK = $('#btn-play-estacionamento');
+if (playPK) {
+  playPK.innerHTML = `${ico('bolt', 'l')}<span>Jogar Estacionamento</span>${ico('next', 's')}`;
+}
+
+const playTR = $('#btn-play-tropa-quermesse');
+if (playTR) {
+  playTR.innerHTML = `${ico('crown', 'l')}<span>Jogar Tropa da Quermesse</span>${ico('next', 's')}`;
+}
+
+const playAR = $('#btn-play-arsenal-quermesse');
+if (playAR) {
+  playAR.innerHTML = `${ico('bolt', 'l')}<span>Jogar Arsenal da Quermesse</span>${ico('next', 's')}`;
 }
 
 const aboutBtn = $('#btn-hub-about');

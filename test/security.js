@@ -48,6 +48,55 @@ import {
   findClueViolations as findPalavraViolations,
   findNextDeduction as findPalavraHint,
 } from '../public/palavra/js/engine.js';
+import {
+  CHAPTERS as SD_CHAPTERS,
+  LEVELS as SD_LEVELS,
+  getLevel as getDogeLevel,
+  buildStroke as buildDogeStroke,
+  createSim as createDogeSim,
+  stepSim as stepDogeSim,
+} from '../public/salve-o-caramelo/js/engine.js';
+import {
+  MAX_CRASHES as PK_MAX_CRASHES,
+  CHAPTERS as PK_CHAPTERS,
+  LEVELS as PK_LEVELS,
+  evaluateExit as evaluateParkingExit,
+  solveParking,
+  findNextHint as findParkingHint,
+  computeStars as computeParkingStars,
+  getLevel as getParkingLevel,
+  vehicleCells as parkingVehicleCells,
+} from '../public/estacionamento/js/engine.js';
+import {
+  STYLES as TR_STYLES,
+  CHAPTERS as TR_CHAPTERS,
+  LEVELS as TR_LEVELS,
+  getLevel as getTropaLevel,
+  styleMultiplier as tropaStyleMult,
+  createRun as createTropaRun,
+  stepRun as stepTropaRun,
+  evaluatePower as evalTropaPower,
+  solveTropaLevel,
+  simulateFixedPolicy as simTropaFixed,
+} from '../public/tropa-da-quermesse/js/engine.js';
+import {
+  PIECES as AR_PIECES,
+  CHAPTERS as AR_CHAPTERS,
+  LEVELS as AR_LEVELS,
+  MAX_TIER as AR_MAX_TIER,
+  getLevel as getArsenalLevel,
+  createStageRun as createArsenalRun,
+  canPlacePiece as canPlaceArsenal,
+  buyShopToGrid as buyArsenalToGrid,
+  moveGridPiece as moveArsenalPiece,
+  rotateGridPiece as rotateArsenalPiece,
+  computeGridSynergies as computeArsenalSynergies,
+  estimateGridDps as estimateArsenalDps,
+  expandGridCell as expandArsenalCell,
+  pieceCells as arsenalPieceCells,
+} from '../public/arsenal-da-quermesse/js/engine.js';
+import { hudIco as arsenalHudIco, pieceSvg as arsenalPieceSvg, shapeMiniSvg as arsenalShapeMiniSvg } from '../public/arsenal-da-quermesse/js/art.js';
+import { playSmartBot as playArsenalSmart, playEmptyBot as playArsenalEmpty } from './arsenal-bot.js';
 
 process.argv.push('--port=0', '--key=segredo123');
 const { server, wss } = await import('../server/index.js');
@@ -61,7 +110,7 @@ const wsUrl = `ws://127.0.0.1:${port}`;
 
 function req(path, opts = {}) {
   return new Promise((resolve, reject) => {
-    const r = http.request(`${baseUrl}${path}`, opts, (res) => {
+    const r = http.request(`${baseUrl}${path}`, { agent: false, ...opts }, (res) => {
       let body = '';
       res.on('data', (c) => (body += c));
       res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, body }));
@@ -76,7 +125,10 @@ function connectWs(opts = {}) {
     const ws = new WebSocket(wsUrl, opts);
     const msgs = [];
     ws.on('message', (raw) => msgs.push(JSON.parse(raw)));
-    ws.once('open', () => resolve({ ws, msgs }));
+    ws.once('open', () => {
+      ws.on('error', () => {});
+      resolve({ ws, msgs });
+    });
     ws.once('unexpected-response', (_, res) => resolve({ rejected: res.statusCode }));
     ws.once('error', reject);
   });
@@ -657,7 +709,7 @@ const waitMsg = (ws, pred = () => true, timeout = 2000) =>
 
 // 16. Auditoria HTTP de todas as rotas, CSS/JS referenciados, Web Worker e conformidade CSP (sem scripts inline)
 {
-  const routes = ['/', '/catapulta', '/sol-e-lua', '/coroas', '/serpentina', '/retalhos', '/sudoku', '/palavra'];
+  const routes = ['/', '/catapulta', '/sol-e-lua', '/coroas', '/serpentina', '/retalhos', '/sudoku', '/palavra', '/salve-o-caramelo', '/estacionamento'];
   const assetUrls = new Set(['/js/puzzle-worker.js', '/js/puzzle-pool.js']);
 
   for (const route of routes) {
@@ -689,7 +741,7 @@ const waitMsg = (ws, pred = () => true, timeout = 2000) =>
 
   // Portal deve apontar para todas as barracas ativas
   const portalRes = await req('/');
-  for (const slug of ['/catapulta', '/sol-e-lua', '/coroas', '/serpentina', '/retalhos', '/sudoku', '/palavra']) {
+  for (const slug of ['/catapulta', '/sol-e-lua', '/coroas', '/serpentina', '/retalhos', '/sudoku', '/palavra', '/salve-o-caramelo', '/estacionamento']) {
     assert.ok(portalRes.body.includes(`href="${slug}"`), `Portal deve conter link para ${slug}`);
   }
 
@@ -751,6 +803,310 @@ const waitMsg = (ws, pred = () => true, timeout = 2000) =>
     const vOverlap = validateRetalhos(overlapRects, rt);
     assert.ok(vOverlap.badClues.size > 0, 'Retalhos deve marcar erro quando retângulo engloba outra pista');
   }
+}
+
+// 18. Mini-jogo Salve o Caramelo (/salve-o-caramelo): rota HTTP, 40 fases em 4 capítulos, física headless, flanqueamento e modal
+{
+  const rDoge = await req('/salve-o-caramelo');
+  assert.equal(rDoge.status, 200);
+  assert.ok(rDoge.body.includes('id="sd-canvas"'), 'Rota /salve-o-caramelo deve servir o mini-jogo Salve o Caramelo');
+
+  assert.equal(SD_LEVELS.length, 40, 'Salve o Doge deve ter exatamente 40 fases');
+  assert.equal(SD_CHAPTERS.length, 4, 'Salve o Doge deve organizar as 40 fases em 4 capítulos');
+
+  for (let i = 0; i < 40; i++) {
+    const lv = getDogeLevel(i + 1);
+    assert.equal(lv.id, i + 1, `Fase ${i + 1} deve ter id sequencial`);
+    assert.ok(Array.isArray(lv.hintStroke) && lv.hintStroke.length >= 2, `Fase ${lv.id} deve ter hintStroke válido`);
+
+    // 1) Sem barreira, o Doge deve perder antes dos 6s
+    const simEmpty = createDogeSim(lv, []);
+    for (let step = 0; step < 400 && simEmpty.status === 'running'; step++) {
+      stepDogeSim(simEmpty, 1 / 60);
+    }
+    assert.equal(simEmpty.status, 'lost', `Fase ${lv.id} (${lv.title}) não pode vencer sem desenho`);
+
+    // 2) Com a linha de referência, o Doge deve sobreviver os 6s dentro do limite de tinta
+    const built = buildDogeStroke(lv.hintStroke, lv);
+    assert.ok(built.length >= 12 && built.length <= lv.inkMax, `hintStroke da Fase ${lv.id} deve caber em inkMax`);
+    const simWin = createDogeSim(lv, lv.hintStroke);
+    for (let step = 0; step < 400 && simWin.status === 'running'; step++) {
+      stepDogeSim(simWin, 1 / 60);
+    }
+    assert.equal(simWin.status, 'won', `Fase ${lv.id} (${lv.title}) deve vencer com o hintStroke (falhou: ${simWin.failReason})`);
+    assert.ok(simWin.stars >= 1 && simWin.stars <= 3, `Fase ${lv.id} deve pontuar entre 1 e 3 estrelas`);
+  }
+
+  // Abelhas devem flanquear barreiras abertas (tampa horizontal rasa sem fechar os lados falha!)
+  for (const id of [1, 2, 3, 6, 9]) {
+    const lv = getDogeLevel(id);
+    const d = lv.doges[0];
+    const simFlank = createDogeSim(lv, [[d.x - 32, d.y - 42], [d.x + 32, d.y - 42]]);
+    for (let step = 0; step < 400 && simFlank.status === 'running'; step++) stepDogeSim(simFlank, 1 / 60);
+    assert.equal(simFlank.status, 'lost', `Abelhas devem contornar tampa aberta na Fase ${id}`);
+  }
+
+  // Bola com espinhos em fase de pedra deve causar dano quando desprotegido
+  const lv23NoBees = { ...getDogeLevel(23), hives: [] };
+  const simBoulder = createDogeSim(lv23NoBees, []);
+  for (let step = 0; step < 400 && simBoulder.status === 'running'; step++) stepDogeSim(simBoulder, 1 / 60);
+  assert.equal(simBoulder.status, 'lost');
+  assert.equal(simBoulder.failReason, 'crushed', 'Bola de espinhos deve esmagar o Doge se desprotegido');
+
+  // Limite máximo de tinta deve truncar traço longo
+  const lv1 = getDogeLevel(1);
+  const longStroke = [];
+  for (let k = 0; k < 25; k++) longStroke.push([40 + (k % 2) * 260, 120 + k * 8]);
+  const trunc = buildDogeStroke(longStroke, lv1);
+  assert.ok(trunc.length <= lv1.inkMax + 0.01, 'buildStroke nunca deve ultrapassar inkMax');
+
+  const sdHtml = fs.readFileSync(new URL('../public/salve-o-caramelo/index.html', import.meta.url), 'utf8');
+  const sdJs = fs.readFileSync(new URL('../public/salve-o-caramelo/js/main.js', import.meta.url), 'utf8');
+  assert.ok(sdHtml.includes('id="modal-root"') && sdHtml.includes('id="sd-ink-fill"'));
+  assert.ok(sdJs.includes('function rulesModal()') && sdJs.includes('function mapModal()'));
+}
+
+// 19. Mini-jogo Estacionamento (/estacionamento): rota HTTP, 40 fases em 4 capítulos, integridade de vagas/cones/muretas, solução em 0 batidas e limite de 3 batidas
+{
+  const rPark = await req('/estacionamento');
+  assert.equal(rPark.status, 200);
+  assert.ok(rPark.body.includes('id="pk-canvas"'), 'Rota /estacionamento deve servir o mini-jogo Estacionamento');
+
+  assert.equal(PK_MAX_CRASHES, 3);
+  assert.equal(PK_LEVELS.length, 40, 'Estacionamento deve ter exatamente 40 fases');
+  assert.equal(PK_CHAPTERS.length, 4, 'Estacionamento deve organizar as 40 fases em 4 capítulos');
+
+  assert.equal(computeParkingStars(0), 3);
+  assert.equal(computeParkingStars(1), 2);
+  assert.equal(computeParkingStars(2), 1);
+  assert.equal(computeParkingStars(3), 0);
+
+  for (let i = 0; i < 40; i++) {
+    const lv = getParkingLevel(i + 1);
+    assert.equal(lv.id, i + 1);
+    assert.ok(lv.size >= 5 && lv.size <= 7);
+    assert.ok(lv.vehicles.length >= 4);
+
+    // Zero sobreposições e todas as células dentro do pátio
+    const occ = new Set();
+    for (const cn of lv.cones || []) {
+      assert.ok(cn.r >= 0 && cn.r < lv.size && cn.c >= 0 && cn.c < lv.size);
+      const k = `${cn.r},${cn.c}`;
+      assert.equal(occ.has(k), false, `Cone duplicado em L${lv.id}`);
+      occ.add(k);
+    }
+    for (const v of lv.vehicles) {
+      assert.ok(['moto', 'car', 'truck'].includes(v.type));
+      assert.ok(v.dir === 'H' || v.dir === 'V');
+      for (const cell of parkingVehicleCells(v)) {
+        assert.ok(cell.r >= 0 && cell.r < lv.size && cell.c >= 0 && cell.c < lv.size, `Veículo fora da grade em L${lv.id}`);
+        const k = `${cell.r},${cell.c}`;
+        assert.equal(occ.has(k), false, `Sobreposição em L${lv.id}`);
+        occ.add(k);
+      }
+    }
+
+    // Deve existir sequência completa que tira todos os veículos sem nenhuma batida
+    const sol = solveParking(lv);
+    assert.equal(sol.solved, true, `Fase ${lv.id} (${lv.title}) deve ter solução em 0 batidas`);
+    assert.equal(sol.order.length, lv.vehicles.length);
+
+    // Reproduz passo a passo e confirma 0 batidas até zerar o pátio
+    let rem = lv.vehicles.map((v) => ({ ...v }));
+    for (const step of sol.order) {
+      const check = evaluateParkingExit(rem, step.id, step.sign, lv);
+      assert.equal(check.ok, true, `Passo ${step.id} na Fase ${lv.id} falhou ao reproduzir solução`);
+      rem = rem.filter((x) => x.id !== step.id);
+    }
+    assert.equal(rem.length, 0);
+
+    // Dica da posição inicial deve apontar um movimento válido
+    const hint = findParkingHint(lv.vehicles, lv);
+    assert.ok(hint && evaluateParkingExit(lv.vehicles, hint.id, hint.sign, lv).ok);
+  }
+
+  // Valida detecção de batida em outro veículo, cone e mureta de borda
+  const testLv = {
+    size: 5,
+    cones: [{ r: 2, c: 4 }],
+    blockedEdges: { top: [0], bottom: [], left: [], right: [] },
+    vehicles: [
+      { id: 'a', type: 'car', len: 2, dir: 'H', r: 2, c: 0, front: 1, color: 'red' },
+      { id: 'b', type: 'car', len: 2, dir: 'V', r: 1, c: 2, front: 1, color: 'blue' },
+      { id: 'c', type: 'moto', len: 1, dir: 'V', r: 1, c: 0, front: -1, color: 'yellow' },
+    ],
+  };
+  const hitVeh = evaluateParkingExit(testLv.vehicles, 'a', 1, testLv);
+  assert.equal(hitVeh.ok, false);
+  assert.equal(hitVeh.reason, 'vehicle');
+
+  const hitCone = evaluateParkingExit(testLv.vehicles.filter((v) => v.id !== 'b'), 'a', 1, testLv);
+  assert.equal(hitCone.ok, false);
+  assert.equal(hitCone.reason, 'cone');
+
+  const hitCurb = evaluateParkingExit(testLv.vehicles, 'c', -1, testLv);
+  assert.equal(hitCurb.ok, false);
+  assert.equal(hitCurb.reason, 'curb');
+
+  const pkHtml = fs.readFileSync(new URL('../public/estacionamento/index.html', import.meta.url), 'utf8');
+  const pkJs = fs.readFileSync(new URL('../public/estacionamento/js/main.js', import.meta.url), 'utf8');
+  assert.ok(pkHtml.includes('id="modal-root"') && pkHtml.includes('id="pk-crashes-txt"'));
+  assert.ok(pkJs.includes('function rulesModal()') && pkJs.includes('function mapModal()'));
+}
+
+// 20) Mini-jogo Tropa da Quermesse: rota HTTP, regras de tema/carga/obstáculos e solvabilidade 3★ em 40/40 fases
+{
+  const rTropa = await req('/tropa-da-quermesse');
+  assert.equal(rTropa.status, 200);
+  assert.ok(rTropa.body.includes('id="trp-canvas"'), 'Rota /tropa-da-quermesse deve servir o mini-jogo Tropa da Quermesse');
+
+  assert.equal(TR_LEVELS.length, 40, 'Tropa da Quermesse deve ter exatamente 40 fases');
+  assert.equal(TR_CHAPTERS.length, 4, 'Tropa da Quermesse deve organizar as 40 fases em 4 capítulos');
+
+  assert.equal(tropaStyleMult({ targetStyle: 'gala', avoidStyle: 'rock' }, 'gala'), 1.6);
+  assert.equal(tropaStyleMult({ targetStyle: 'gala', avoidStyle: 'rock' }, 'rock'), 0.72);
+  assert.equal(tropaStyleMult({ targetStyle: 'gala', avoidStyle: 'rock' }, 'basico'), 1.0);
+
+  let straightWins = 0;
+  for (let i = 0; i < 40; i++) {
+    const lv = getTropaLevel(i + 1);
+    assert.equal(lv.id, i + 1);
+    assert.ok(TR_STYLES[lv.targetStyle], `Tema inválido na Fase ${lv.id}`);
+    assert.ok(lv.length / lv.speed >= 60, `Fase ${lv.id} deve durar >= 60s (atual ${(lv.length / lv.speed).toFixed(1)}s)`);
+    assert.ok(lv.events.length >= 25, `Fase ${lv.id} deve ter múltiplos eventos na pista`);
+    assert.ok(lv.star3Power > lv.star2Power && lv.star2Power > lv.rivalPower);
+
+    const best = solveTropaLevel(lv, 10);
+    assert.equal(best.status, 'won', `Fase ${lv.id} (${lv.title}) deve ser vencível pelo solucionador`);
+    assert.equal(best.stars, 3, `Fase ${lv.id} (${lv.title}) deve alcançar 3 estrelas (alcancou ${best.power}/${lv.star3Power})`);
+
+    const s0 = simTropaFixed(lv, () => 0);
+    if (s0.status === 'won') straightWins++;
+  }
+  assert.equal(straightWins, 0, 'Nenhuma fase deve ser vencida indo reto sem desviar');
+  assert.ok(getTropaLevel(40).rivalPower >= 10_000_000, 'Fase 40 deve escalar para milhões');
+
+  // Testa carregamento de portal charge, destruição de baú/horda a tiros e penalidade de lama
+  const dummyLv = {
+    id: 99,
+    length: 62,
+    speed: 12,
+    startCount: 24,
+    targetStyle: 'junino',
+    rivalPower: 20,
+    star2Power: 30,
+    star3Power: 40,
+    events: [
+      { type: 'gatePair', z: 22, left: { kind: 'charge', startVal: -6, maxVal: 16, rate: 16 }, right: { kind: 'math', op: '+', val: 1 } },
+      { type: 'crate', z: 46, x: -0.45, hw: 0.3, hp: 10, maxHp: 10, rewardOp: '×', rewardVal: 2 },
+    ],
+  };
+  const run = createTropaRun(dummyLv);
+  for (let s = 0; s < 200 && run.status === 'running'; s++) stepTropaRun(run, 1 / 30, -0.45);
+  assert.equal(run.status, 'won');
+  assert.ok(run.count >= 60, `Portal charge + baú ×2 devem multiplicar a tropa (count=${run.count})`);
+  run.muddy = true;
+  const dirtyPow = evalTropaPower(run).totalPower;
+  run.muddy = false;
+  const cleanPow = evalTropaPower(run).totalPower;
+  assert.ok(cleanPow > dirtyPow);
+
+  const trHtml = fs.readFileSync(new URL('../public/tropa-da-quermesse/index.html', import.meta.url), 'utf8');
+  const trJs = fs.readFileSync(new URL('../public/tropa-da-quermesse/js/main.js', import.meta.url), 'utf8');
+  assert.ok(trHtml.includes('id="modal-root"') && trHtml.includes('id="trp-overlay"'));
+  assert.ok(trJs.includes('function rulesModal()') && trJs.includes('function mapModal()'));
+}
+
+// 21) Mini-jogo Arsenal da Quermesse (/arsenal-da-quermesse): rota HTTP, tamanhos exatos, rotação L, fusões, sinergias e 40/40 fases vencíveis
+{
+  const rArs = await req('/arsenal-da-quermesse');
+  assert.equal(rArs.status, 200);
+  assert.ok(rArs.body.includes('id="ars-canvas"'), 'Rota /arsenal-da-quermesse deve servir a arena do mini-jogo');
+  assert.ok(rArs.body.includes('id="ars-grid"'), 'Rota /arsenal-da-quermesse deve servir a grade tática');
+
+  const homeRes = await req('/');
+  assert.ok(homeRes.body.includes('href="/arsenal-da-quermesse"'), 'Portal deve listar a Barraca do Arsenal da Quermesse');
+
+  assert.equal(AR_LEVELS.length, 40, 'Arsenal deve ter exatamente 40 fases');
+  assert.equal(AR_CHAPTERS.length, 4, 'Arsenal deve organizar as 40 fases em 4 capítulos');
+
+  // Tamanhos das peças solicitadas pelo usuário
+  assert.equal(arsenalPieceCells('witch', 0).length, 2, 'Bruxa deve ocupar 2 espaços');
+  assert.equal(arsenalPieceCells('shield', 0).length, 1, 'Escudo deve ocupar 1 espaço');
+  assert.equal(arsenalPieceCells('sword', 0).length, 3, 'Espada deve ocupar 3 espaços');
+  assert.equal(arsenalPieceCells('voodoo', 0).length, 2, 'Boneco de Voodoo deve ocupar 2 espaços');
+  assert.equal(arsenalPieceCells('tome', 0).length, 2, 'Tomo de Feitiços deve ocupar 2 espaços');
+  assert.equal(arsenalPieceCells('axe', 0).length, 3, 'Machado Rúnico em L deve ocupar 3 espaços');
+
+  // Testa rotação L, encaixe no canto aberto do L, sinergia do Tomo e fusão até Nv.5
+  const testRun = createArsenalRun(4); // box_4x4 (cols 1..4, rows 1..4)
+  testRun.gold = 200;
+  testRun.shop[0] = { slot: 0, pieceId: 'axe', tier: 1, cost: 7, locked: false };
+  const pAxe = buyArsenalToGrid(testRun, 0, 1, 1, 0); // ocupa (1,1),(2,1),(1,2); deixa (2,2) livre!
+  assert.equal(pAxe.ok, true);
+  assert.equal(canPlaceArsenal(testRun.grid, 'shield', 2, 2, 0), true, 'Canto vazio do L deve permanecer livre para peça 1x1');
+  assert.equal(rotateArsenalPiece(testRun, pAxe.piece.uid).ok, true, 'Machado em L deve rotacionar');
+
+  testRun.shop[0] = { slot: 0, pieceId: 'tome', tier: 1, cost: 6, locked: false };
+  testRun.shop[1] = { slot: 1, pieceId: 'witch', tier: 1, cost: 5, locked: false };
+  testRun.shop[2] = { slot: 2, pieceId: 'witch', tier: 1, cost: 5, locked: false };
+  const pTome = buyArsenalToGrid(testRun, 0, 3, 1, 0); // (3,1)-(4,1)
+  const pWitch = buyArsenalToGrid(testRun, 1, 3, 2, 0); // (3,2)-(4,2) adjacente ao Tomo!
+  assert.equal(pTome.ok && pWitch.ok, true);
+
+  const syn = computeArsenalSynergies(testRun.grid);
+  assert.ok(syn.byUid.get(pWitch.piece.uid).dmgMult > 1.15, 'Tomo adjacente deve aumentar o poder da Bruxa');
+
+  const pMerge = buyArsenalToGrid(testRun, 2, 3, 2, 0); // compra sobre a Bruxa existente -> funde!
+  assert.equal(pMerge.ok && pMerge.merged, true, 'Comprar/soltar peça igual sobre existente deve somar (fundir)');
+  assert.equal(pWitch.piece.tier, 2);
+
+  // Testa expansão de célula adjacente (4x4 -> rumo a 6x6)
+  testRun.freeExpands = 1;
+  assert.equal(expandArsenalCell(testRun, 0, 1).ok, true, 'Deve abrir célula adjacente grátis');
+  assert.equal(expandArsenalCell(testRun, 5, 5).ok, false, 'Não pode abrir célula distante não adjacente');
+
+  // Testa evolução por fusão em cadeia na grade até Nv.5
+  pWitch.piece.tier = 4;
+  testRun.shop[0] = { slot: 0, pieceId: 'witch', tier: 4, cost: 1, locked: false };
+  const pMyth = buyArsenalToGrid(testRun, 0, 3, 2, 0);
+  assert.equal(pMyth.ok && pMyth.piece.tier, AR_MAX_TIER);
+
+  // Verifica que mover peça igual na grade também funde
+  testRun.shop[0] = { slot: 0, pieceId: 'shield', tier: 1, cost: 3, locked: false };
+  testRun.shop[1] = { slot: 1, pieceId: 'shield', tier: 1, cost: 3, locked: false };
+  const sA = buyArsenalToGrid(testRun, 0, 1, 3, 0);
+  const sB = buyArsenalToGrid(testRun, 1, 2, 3, 0);
+  const movedMerge = moveArsenalPiece(testRun, sB.piece.uid, 1, 3, 0);
+  assert.equal(movedMerge.ok && movedMerge.merged && sA.piece.tier === 2, true);
+
+  // Verifica 40/40 fases: vazio perde todas e bot inteligente vence 40/40
+  for (let id = 1; id <= 40; id++) {
+    const lv = getArsenalLevel(id);
+    assert.equal(lv.id, id);
+    assert.ok(lv.waves.length >= 3);
+    assert.equal(playArsenalEmpty(id).phase, 'lost', `Fase ${id} não pode vencer sem peças`);
+    let res = playArsenalSmart(id, 1000 + id * 77);
+    if (res.phase !== 'won') res = playArsenalSmart(id, 2000 + id * 77 + 13);
+    assert.equal(res.phase, 'won', `Fase ${id} (${lv.title}) deve ser vencida pelo bot inteligente`);
+  }
+
+  const est = estimateArsenalDps(testRun.grid);
+  assert.ok(est.dps > 0 && est.linkCount >= 1, 'estimateGridDps deve somar DPS e vínculos de sinergia');
+
+  for (const icoName of ['coin', 'wall', 'shield', 'dps', 'wave']) {
+    assert.ok(arsenalHudIco(icoName).includes('<svg'), `Ícone HUD ${icoName} válido`);
+  }
+
+  for (const id of Object.keys(AR_PIECES)) {
+    assert.ok(arsenalPieceSvg(id, 1, 0).includes('<svg'), `Arte SVG válida para peça ${id}`);
+    assert.ok(arsenalShapeMiniSvg(id, 1).includes('<svg'), `Mini-forma SVG válida para peça ${id}`);
+  }
+
+  const arHtml = fs.readFileSync(new URL('../public/arsenal-da-quermesse/index.html', import.meta.url), 'utf8');
+  const arJs = fs.readFileSync(new URL('../public/arsenal-da-quermesse/js/main.js', import.meta.url), 'utf8');
+  assert.ok(arHtml.includes('id="modal-root"') && arHtml.includes('id="ars-overlay"'));
+  assert.ok(arJs.includes('function rulesModal()') && arJs.includes('function mapModal()'));
 }
 
 for (const client of wss.clients) client.terminate();
